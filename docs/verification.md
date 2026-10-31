@@ -80,6 +80,8 @@ included development-seed input files.
 CSV snapshots are explicitly excluded from Git newline conversion. The staged
 CSV bytes were compared to the analyzed files before committing, preserving the
 recorded dataset fingerprint across Windows and Linux checkouts.
+A separate fresh Git clone then loaded its own source module and reproduced
+the recorded fingerprint and all **six SQL queries** from the included files.
 
 ## Model evaluation
 
