@@ -62,3 +62,10 @@ def test_smoke_is_explicitly_not_real_llm_evaluation(tmp_path):
 def test_development_seed_cannot_be_used_as_holdout(tmp_path):
     with pytest.raises(ValueError, match="development_seed"):
         evaluate(tmp_path, seeds=(17,))
+
+
+def test_evaluation_does_not_silently_overwrite_previous_results(tmp_path):
+    (tmp_path / "results.json").write_text('{"historical": true}', encoding="utf-8")
+    with pytest.raises(ValueError, match="already_exists"):
+        evaluate(tmp_path, seeds=(303,), scenarios=["no_change"])
+    assert (tmp_path / "results.json").read_text(encoding="utf-8") == '{"historical": true}'

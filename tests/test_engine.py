@@ -317,6 +317,38 @@ def test_evidence_idempotency_fingerprint_and_json_roundtrip(tmp_path):
         assert changed.fingerprint != before
 
 
+def test_evidence_is_bound_to_loaded_bytes_when_source_changes(tmp_path):
+    with engine_for(tmp_path) as engine:
+        before_quality = engine.run("check_data_quality")
+        before_comparison = engine.run("compare_periods")
+        original_hash = hashlib.sha256(engine.orders_path.read_bytes()).hexdigest()
+        # A loaded engine owns an immutable in-memory snapshot, even if a
+        # caller replaces or removes the original files afterwards.
+        engine.orders_path.write_bytes(b"changed after loading\n")
+        engine.loads_path.unlink()
+        after_quality = engine.run("check_data_quality")
+        assert after_quality.model_dump() == before_quality.model_dump()
+        assert after_quality.reproduction["orders_sha256"] == original_hash
+        assert engine.run("compare_periods").model_dump() == before_comparison.model_dump()
+
+
+def test_missing_input_is_a_safe_contract_error(tmp_path):
+    with pytest.raises(DataValidationError) as exc:
+        AnalysisEngine(tmp_path / "PRIVATE-PATH-orders.csv", None, request())
+    assert str(exc.value) == "orders: input file is unavailable"
+
+
+def test_zero_threshold_does_not_make_zero_change_relevant(tmp_path):
+    manifest = generate_scenario(tmp_path, "no_change")
+    config = MetricConfig(relevant_change_pct=0)
+    with AnalysisEngine(
+        Path(manifest["orders_path"]), Path(manifest["loads_path"]), request(config)
+    ) as engine:
+        values = engine.run("compare_periods").values
+        assert Decimal(values["delta_revenue"]) == 0
+        assert values["relevant_change"] is False
+
+
 def test_synthetic_seeds_are_reproducible_and_holdout_different(tmp_path):
     generate_all(tmp_path / "a", 17)
     generate_all(tmp_path / "b", 17)

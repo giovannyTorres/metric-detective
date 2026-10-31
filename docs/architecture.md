@@ -98,8 +98,12 @@ to loopback or a trusted development network. Docker Compose is the reproducible
 service arrangement; it contains persistent PostgreSQL and dataset volumes. It
 does not deploy paid infrastructure.
 
-The UI presents live jobs, history, saved reports and a clearly labelled replay.
-Replay reads a prerecorded report and does not call an LLM. JSON is the complete
+The UI presents live jobs, history, saved reports, service health and a clearly
+labelled replay. The local launcher supervises native API/worker/UI processes;
+closing the launching terminal does not intentionally stop those services. Replay
+reads a prerecorded report and does not call an LLM. If the API is unavailable,
+the UI can load the validated report bundled in the installed package, with an
+explicit offline label. JSON is the complete
 machine-readable report; HTML is a portable human-readable export.
 
 ## Official references used

@@ -1,21 +1,25 @@
 """Local FastAPI boundary: bounded uploads and durable asynchronous jobs."""
 
 import json
+import os
 import shutil
 import uuid
 from contextlib import asynccontextmanager
 from datetime import date
 from typing import Annotated
 
+import httpx
 import psycopg
 from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import ValidationError
 from starlette.concurrency import run_in_threadpool
 
+from metric_detective import __version__
 from metric_detective.contracts import InvestigationRequest, MetricConfig
-from metric_detective.engine import AnalysisEngine
-from metric_detective.settings import REPO_ROOT, Settings
+from metric_detective.engine import AnalysisEngine, DataValidationError
+from metric_detective.resources import load_recorded_report
+from metric_detective.settings import Settings
 from metric_detective.store import Store
 
 
@@ -112,7 +116,7 @@ def create_app(settings: Settings | None = None, store: Store | None = None) -> 
         app.state.scenarios = initialize_demo(store, settings)
         yield
 
-    app = FastAPI(title="Metric Detective", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(title="Metric Detective", version=__version__, lifespan=lifespan)
     app.add_middleware(UploadLimitMiddleware, maximum=settings.max_upload_bytes + 65536)
     app.state.store = store
 
@@ -124,6 +128,43 @@ def create_app(settings: Settings | None = None, store: Store | None = None) -> 
     def health():
         store.healthy()
         return {"status": "ok", "database": "postgresql"}
+
+    @app.get("/health/details")
+    def health_details():
+        database = {"status": "ok"}
+        try:
+            worker = store.worker_health()
+        except psycopg.Error:
+            database = {"status": "error"}
+            worker = {"status": "missing", "active_workers": 0}
+        model = os.getenv("MD_LLM_MODEL", "qwen3.5:4b")
+        ollama = {"status": "unavailable", "model": model, "model_available": False}
+        headers = (
+            {"Authorization": "Bearer " + os.environ["MD_LLM_API_KEY"]}
+            if os.getenv("MD_LLM_API_KEY")
+            else {}
+        )
+        try:
+            response = httpx.get(
+                os.getenv("MD_OLLAMA_BASE_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/tags",
+                headers=headers,
+                timeout=2,
+                trust_env=False,
+            )
+            response.raise_for_status()
+            available = any(item.get("name") == model for item in response.json().get("models", []))
+            ollama.update(status="ok" if available else "model_missing", model_available=available)
+        except (httpx.HTTPError, ValueError):
+            pass
+        return {
+            "status": "ok"
+            if database["status"] == worker["status"] == ollama["status"] == "ok"
+            else "degraded",
+            "version": __version__,
+            "database": database,
+            "worker": worker,
+            "ollama": ollama,
+        }
 
     @app.get("/scenarios")
     def scenarios():
@@ -143,6 +184,7 @@ def create_app(settings: Settings | None = None, store: Store | None = None) -> 
         folder = settings.data_dir / dataset_id
         folder.mkdir()
         total = 0
+        registered = False
         try:
             for upload, name in [(orders, "orders.csv"), (loads, "loads.csv")]:
                 if upload is None:
@@ -181,12 +223,23 @@ def create_app(settings: Settings | None = None, store: Store | None = None) -> 
                 metric_config.model_dump(mode="json"),
                 "Archivos cargados",
             )
+            registered = True
         except HTTPException:
-            shutil.rmtree(folder)
             raise
+        except DataValidationError as error:
+            raise HTTPException(
+                422, {"code": "invalid_dataset_contract", "message": str(error)}
+            ) from error
         except (ValueError, UnicodeError, OSError) as error:
-            shutil.rmtree(folder)
             raise HTTPException(422, "invalid_dataset_contract") from error
+        finally:
+            for upload in (orders, loads):
+                if upload is not None:
+                    await upload.close()
+            if not registered and folder.exists():
+                if folder.resolve().parent != settings.data_dir.resolve():
+                    raise RuntimeError("upload_cleanup_path_mismatch")
+                shutil.rmtree(folder)
         return {"id": dataset_id, "config": metric_config.model_dump(mode="json")}
 
     @app.post("/investigations", status_code=202)
@@ -236,9 +289,9 @@ def create_app(settings: Settings | None = None, store: Store | None = None) -> 
 
     @app.get("/replay")
     def replay():
-        path = REPO_ROOT / "examples" / "recorded-investigation.json"
-        if not path.is_file():
-            raise HTTPException(404, "recorded_investigation_not_available")
-        return json.loads(path.read_text(encoding="utf-8"))
+        try:
+            return load_recorded_report()
+        except (FileNotFoundError, ValueError):
+            raise HTTPException(404, "recorded_investigation_not_available") from None
 
     return app

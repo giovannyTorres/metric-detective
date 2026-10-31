@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import html
 import json
-from decimal import Decimal
+from decimal import Decimal, localcontext
 from typing import Any
 
 from .contracts import Evidence, InvestigationRequest
@@ -153,10 +153,49 @@ def canonical_findings(evidence: list[dict[str, Any]], currency: str) -> list[di
     return findings
 
 
-def canonical_hypotheses(evidence: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def canonical_hypotheses(
+    evidence: list[dict[str, Any]], version: str = "1.0"
+) -> list[dict[str, Any]]:
     comparison = next((e for e in evidence if e["tool"] == "compare_periods"), None)
     if comparison is None or _decimal(comparison["values"]["delta_revenue"]) >= 0:
         return []
+    if version == "2.0":
+        stable = (
+            comparison["values"]["reference"]["orders"]
+            == comparison["values"]["comparison"]["orders"]
+        )
+        text = (
+            "El menor ingreso con pedidos estables es compatible con cambios en importes o mezcla; estos datos no identifican el mecanismo causal."
+            if stable
+            else "La variación de pedidos puede ser compatible con cambios en adquisición, conversión o mezcla; estos datos no permiten distinguir esas explicaciones."
+        )
+        check = (
+            "Contrastar precios, promociones y mezcla de productos"
+            if stable
+            else "Contrastar sesiones, conversión e incidencias operativas"
+        )
+        ids = [comparison["id"]]
+        focus = ""
+        for item in evidence:
+            if item["tool"] != "rank_segment_changes":
+                continue
+            negative = [
+                row for row in item["values"]["segments"] if _decimal(row["delta_revenue"]) < 0
+            ]
+            if negative:
+                leading = min(negative, key=lambda row: _decimal(row["delta_revenue"]))
+                focus = f" para {item['values']['dimension']}={_display(leading['segment'])}"
+                ids.append(item["id"])
+                break
+        return [
+            {
+                "text": text,
+                "evidence_ids": ids,
+                "next_check": check
+                + focus
+                + " en los mismos periodos. Para atribuir causalidad se requiere evidencia adicional.",
+            }
+        ]
     return [
         {
             "text": "El cambio puede ser compatible con variaciones de adquisición, conversión, precios o mezcla; la información disponible no permite distinguir esas explicaciones.",
@@ -164,6 +203,35 @@ def canonical_hypotheses(evidence: list[dict[str, Any]]) -> list[dict[str, Any]]
             "next_check": "Contrastar sesiones, conversión, precios, promociones e incidencias por los mismos periodos y segmentos; una atribución causal requiere evidencia adicional.",
         }
     ]
+
+
+def analysis_coverage(evidence: list[dict[str, Any]]) -> dict[str, Any]:
+    quality = next((e for e in evidence if e["tool"] == "check_data_quality"), None)
+    comparison = next((e for e in evidence if e["tool"] == "compare_periods"), None)
+    if quality and quality["values"].get("status") == "blocked":
+        required = ["check_data_quality"]
+        scope = "data_quality_block"
+    elif comparison and comparison["values"].get("relevant_change") is False:
+        required = ["check_data_quality", "compare_periods"]
+        scope = "no_relevant_change"
+    else:
+        required = [
+            "check_data_quality",
+            "compare_periods",
+            "decompose_revenue_change",
+            "rank_segment_changes",
+            "inspect_daily_pattern",
+        ]
+        scope = "revenue_change"
+    available = {e["tool"] for e in evidence if not e.get("filters")}
+    missing = [tool for tool in required if tool not in available]
+    return {
+        "scope": scope,
+        "required": required,
+        "available": [tool for tool in required if tool in available],
+        "missing": missing,
+        "complete": not missing,
+    }
 
 
 def missing_information(evidence: list[dict[str, Any]]) -> list[str]:
@@ -209,14 +277,16 @@ def missing_information(evidence: list[dict[str, Any]]) -> list[str]:
 
 def build_report(state: dict[str, Any], request: InvestigationRequest) -> dict[str, Any]:
     evidence = state.get("evidence", [])
+    version = state.get("metrics", {}).get("investigator_version", "1.0")
     report = {
         "schema_version": "1.0",
+        "investigator_version": version,
         "status": state.get("status", "partial"),
         "mode": request.mode,
         "request": request.model_dump(mode="json"),
         "data_fingerprint": state.get("data_fingerprint", ""),
         "findings": canonical_findings(evidence, request.config.currency),
-        "hypotheses": canonical_hypotheses(evidence),
+        "hypotheses": canonical_hypotheses(evidence, version),
         "missing_data": missing_information(evidence),
         "evidence": evidence,
         "decisions": state.get("decisions", []),
@@ -229,6 +299,8 @@ def build_report(state: dict[str, Any], request: InvestigationRequest) -> dict[s
             "El umbral de relevancia es descriptivo y configurable; no es una prueba de significancia estadística.",
         ],
     }
+    if version == "2.0":
+        report["analysis_coverage"] = analysis_coverage(evidence)
     validate_report(report)
     return report
 
@@ -247,6 +319,8 @@ def validate_report(report: dict[str, Any]) -> None:
     citing an existing evidence ID is intentionally insufficient. This is a narrow
     verifier, not a general natural-language entailment benchmark.
     """
+    if report.get("schema_version") != "1.0":
+        raise ValueError("unsupported_report_schema")
     request = InvestigationRequest.model_validate(report["request"])
     if report.get("status") not in {"completed", "partial", "blocked_data_quality", "failed"}:
         raise ValueError("invalid_report_status")
@@ -297,6 +371,20 @@ def validate_report(report: dict[str, Any]) -> None:
             )
             if _decimal(values["delta_revenue"]) != expected:
                 raise ValueError("revenue_change_does_not_reconcile")
+            reference_revenue = _decimal(values["reference"]["revenue"])
+            actual_percentage = values.get("delta_pct")
+            if not reference_revenue:
+                if actual_percentage is not None:
+                    raise ValueError("percentage_undefined_for_zero_reference")
+            else:
+                # The metric contract represents ratios at 38-digit decimal
+                # precision. Independently derive the percentage from amounts,
+                # rather than trusting internally consistent finding templates.
+                with localcontext() as context:
+                    context.prec = 38
+                    expected_percentage = expected * 100 / reference_revenue
+                if actual_percentage is None or _decimal(actual_percentage) != expected_percentage:
+                    raise ValueError("percentage_contradicts_period_amounts")
         if item["tool"] == "decompose_revenue_change":
             if abs(
                 _decimal(values["volume_effect"])
@@ -340,14 +428,22 @@ def validate_report(report: dict[str, Any]) -> None:
             or claim["periods"] != item["periods"]
         ):
             raise ValueError("unsupported_claim_reference")
-    if report.get("hypotheses") != canonical_hypotheses(evidence):
+    if report.get("hypotheses") != canonical_hypotheses(
+        evidence, report.get("investigator_version", "1.0")
+    ):
         raise ValueError("unsupported_hypothesis")
+    if "analysis_coverage" in report and report["analysis_coverage"] != analysis_coverage(evidence):
+        raise ValueError("unsupported_analysis_coverage")
     if report.get("missing_data") != missing_information(evidence):
         raise ValueError("missing_information_was_changed")
     for decision in report.get("decisions", []):
         if not set(decision.get("evidence_ids", [])).issubset(ids):
             raise ValueError("unsupported_decision_reference")
     quality = next((e for e in evidence if e["tool"] == "check_data_quality"), None)
+    if report["status"] == "blocked_data_quality" and (
+        not quality or quality["values"].get("status") != "blocked"
+    ):
+        raise ValueError("blocked_status_requires_blocked_quality")
     if report["status"] == "completed":
         if not quality or quality["values"].get("status") != "ok" or comparison is None:
             raise ValueError("completed_report_requires_verified_data")
@@ -503,5 +599,20 @@ def render_html(report: dict[str, Any]) -> str:
         for key, label in metric_labels
     )
     trace_section = f"<section><h2>Decisiones registradas</h2><ol>{''.join(decisions) or '<li>La ejecución no requirió una selección de herramienta del modelo.</li>'}</ol><details><summary>Métricas de ejecución</summary><dl>{metric_rows}<dt>Costo monetario</dt><dd>No disponible</dd></dl><pre>{escape(json.dumps(metrics, ensure_ascii=False, indent=2))}</pre></details></section>"
+    if "analysis_coverage" in report:
+        coverage = report["analysis_coverage"]
+        scope_labels = {
+            "data_quality_block": "Revisión de calidad de datos; diagnóstico de negocio bloqueado",
+            "no_relevant_change": "Cambio por debajo del umbral de relevancia",
+            "revenue_change": "Investigación del cambio de ingresos",
+        }
+        rows = "".join(
+            f"<li>{escape(tool)} · {'Pendiente' if tool in coverage['missing'] else 'Disponible'}</li>"
+            for tool in coverage["required"]
+        )
+        trace_section = (
+            f"<section><h2>Cobertura de la investigación</h2><p>{escape(scope_labels[coverage['scope']])}</p><ul>{rows}</ul></section>"
+            + trace_section
+        )
     return f"""<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Metric Detective · Informe</title><style>
     *{{box-sizing:border-box}}body{{margin:0;background:#f5f5f1;color:#172a3b;font:16px/1.6 system-ui,sans-serif}}main{{max-width:1120px;margin:48px auto;padding:0 24px}}header{{padding:32px;background:#142b3d;color:#fff;border-radius:20px;overflow-wrap:anywhere}}h1{{font-size:42px;letter-spacing:-1.5px;margin:8px 0}}h2{{margin-top:0}}section{{background:#fff;padding:28px;margin:20px 0;border-radius:16px;border:1px solid #dfe4e4}}.tag{{font-size:13px;letter-spacing:.08em}}a{{color:#08786b}}li{{margin:12px 0}}pre{{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;background:#f2f5f6;padding:16px;border-radius:8px}}details{{padding:16px 0;border-bottom:1px solid #e0e5e5}}summary{{cursor:pointer;font-weight:600}}.muted{{color:#617487}}.plotly-graph-div{{max-width:100%}}.alert{{padding:16px;background:#fff3e2;color:#67400c;border-radius:10px}}dl{{display:grid;grid-template-columns:minmax(160px,1fr) 1fr;gap:8px 16px}}dd{{margin:0;overflow-wrap:anywhere}}code{{overflow-wrap:anywhere}}</style></head><body><main><header><span class="tag">INVESTIGACIÓN CON EVIDENCIA</span><h1>Metric Detective</h1><p>Estado: {status} · Modo: {mode}</p>{period_labels}<p>Zona horaria: {escape(definition.config.timezone)} · Moneda: {escape(currency)}</p><p>Proveedor: {escape(str(metrics.get("provider", "No disponible")))} · Modelo: {escape(str(metrics.get("model", "No disponible")))}</p><p>Huella: {escape(report["data_fingerprint"])}</p>{error_block}</header><section><h2>Hallazgos respaldados</h2><ul>{claims}</ul></section>{"".join(f"<section>{chart}</section>" for chart in charts)}<section><h2>Hipótesis pendientes</h2><ul>{hypotheses or "<li>No se propone una explicación causal con la información disponible.</li>"}</ul><h2>Datos faltantes</h2><ul>{missing or "<li>Sin limitaciones de completitud detectadas.</li>"}</ul></section>{trace_section}<section><h2>Evidencia reproducible</h2>{details}</section><section><h2>Alcance y limitaciones</h2><ul>{limitations}</ul><p class="muted">Costo del modelo: no disponible. No se publican porcentajes de confianza inventados.</p></section></main></body></html>"""

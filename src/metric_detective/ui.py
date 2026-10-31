@@ -8,13 +8,16 @@ import math
 import os
 from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
+from pathlib import Path
 from typing import Any
 
 import httpx
 import plotly.graph_objects as go
 import streamlit as st
+from dotenv import load_dotenv
 
-API_URL = os.getenv("MD_API_URL", "http://127.0.0.1:8000").rstrip("/")
+load_dotenv(override=False)
+API_URL = os.getenv("MD_API_URL", "http://127.0.0.1:18000").rstrip("/")
 TEAL = "#5EEAD4"
 BLUE = "#93B4FF"
 CORAL = "#FF927D"
@@ -26,6 +29,73 @@ STATUS = {
     "partial": "Parcial",
     "blocked_data_quality": "Bloqueada por calidad de datos",
     "failed": "Fallida",
+}
+DIMENSION_LABELS = {"device": "Dispositivo", "channel": "Canal", "country": "País"}
+SOURCE_LABELS = {
+    "delivery": "Modalidad de servicio",
+    "acquisition": "Adquisición",
+    "region": "País",
+}
+SEGMENT_LABELS = {
+    "mobile": "Móvil",
+    "desktop": "Escritorio",
+    "tablet": "Tableta",
+    "remote": "Remoto",
+    "onsite": "Presencial",
+    "on_site": "Presencial",
+    "organic": "Orgánico",
+    "paid": "Publicidad",
+    "paid_search": "Búsqueda pagada",
+    "email": "Correo electrónico",
+    "referral": "Referidos",
+    "direct": "Directo",
+    "social": "Redes sociales",
+    "partner": "Socios",
+    "__missing__": "Sin valor",
+}
+COUNTRY_LABELS = {
+    "MX": "México",
+    "US": "Estados Unidos",
+    "CA": "Canadá",
+    "ES": "España",
+    "CO": "Colombia",
+    "AR": "Argentina",
+    "BR": "Brasil",
+    "CL": "Chile",
+    "PE": "Perú",
+    "GB": "Reino Unido",
+}
+ISSUE_LABELS = {
+    "load_completeness_unverified": "La completitud de las cargas no está verificada.",
+    "duplicate_order_identifiers": "Hay identificadores de pedido duplicados.",
+    "mixed_or_unexpected_currency": "Hay monedas mezcladas o diferentes de la moneda configurada.",
+    "duplicate_load_declarations": "Hay declaraciones de carga duplicadas para la misma fecha y fuente.",
+    "explicit_incomplete_or_failed_loads": "Se declararon cargas incompletas o fallidas.",
+    "zero_reference_revenue_percentage_undefined": "El porcentaje de cambio no se puede calcular: la referencia tiene ingresos de cero.",
+    "empty_period_ticket_unobserved_carry_observed_ticket_for_decomposition": "Un periodo sin pedidos no tiene ticket observado; la descomposición asigna la entrada o salida al volumen.",
+    "partitions_overlap_across_dimensions_do_not_add_device_channel_country_contributions": "Las particiones se superponen. No sumes las contribuciones de dispositivo, canal y país.",
+    "contribution_percent_undefined_when_partition_delta_zero": "El porcentaje de contribución no se define cuando el cambio total es cero.",
+}
+ERROR_LABELS = {
+    "token_budget_exhausted": "Se agotó el presupuesto de tokens. El informe conserva la evidencia obtenida.",
+    "analytical_call_limit": "Se alcanzó el límite de análisis; quedan comprobaciones pendientes.",
+    "time_budget_exhausted": "Se alcanzó el tiempo permitido; revisa el alcance parcial.",
+    "provider_timeout": "El modelo no respondió dentro del tiempo permitido.",
+    "provider_unavailable_or_invalid_response": "El modelo no estuvo disponible o devolvió una respuesta incompatible.",
+    "provider_call_interrupted_usage_unknown": "La llamada al modelo se interrumpió. Su consumo final es desconocido y no se repitió.",
+    "invalid_tool_selection": "El modelo no seleccionó un análisis válido dentro de los intentos permitidos.",
+    "required_analysis_missing": "El agente terminó antes de completar los análisis requeridos.",
+}
+API_ERROR_LABELS = {
+    "database_unavailable": "PostgreSQL no está disponible. Revisa el estado del entorno local.",
+    "dataset_not_found": "No se encontró el conjunto de datos. Vuelve a seleccionarlo o cargarlo.",
+    "invalid_metric_configuration": "La configuración no cumple el contrato de la métrica.",
+    "invalid_dataset_contract": "Los CSV no cumplen el contrato. Revisa columnas, tipos y valores obligatorios.",
+    "configuration_must_match_validated_dataset": "La definición debe coincidir con la del conjunto validado. Carga los archivos de nuevo para cambiarla.",
+    "files_too_large": "Los archivos superan el límite de carga configurado.",
+    "request_too_large": "La solicitud supera el límite de tamaño permitido.",
+    "report_not_ready": "El informe todavía no está disponible. Espera a que termine el trabajo.",
+    "investigation_not_found": "No se encontró esta investigación.",
 }
 DEFAULT_CONFIG: dict[str, Any] = {
     "name": "Ingresos de comercio electrónico",
@@ -46,6 +116,13 @@ DEFAULT_CONFIG: dict[str, Any] = {
 class APIError(RuntimeError):
     """A safe, user-facing service error."""
 
+    def __init__(
+        self, message: str, *, code: str = "request_failed", status_code: int | None = None
+    ):
+        super().__init__(message)
+        self.code = code
+        self.status_code = status_code
+
 
 def api(method: str, path: str, **kwargs: Any) -> Any:
     """Bounded API requests; raw provider errors or credentials never reach UI."""
@@ -59,10 +136,155 @@ def api(method: str, path: str, **kwargs: Any) -> Any:
                     detail = "Revisa el contrato, los archivos y los periodos seleccionados."
             except (ValueError, AttributeError):
                 detail = "El servicio no pudo completar la solicitud."
-            raise APIError(f"{response.status_code}: {detail}")
+            message = API_ERROR_LABELS.get(
+                detail,
+                "El servicio rechazó la solicitud. Revisa los datos y el estado del sistema.",
+            )
+            raise APIError(message, code=detail, status_code=response.status_code)
         return response.json()
     except httpx.RequestError as exc:
-        raise APIError("No se pudo conectar con la API. Comprueba que esté iniciada.") from exc
+        raise APIError(
+            "El servicio de investigaciones no está disponible.", code="connection_unavailable"
+        ) from exc
+
+
+def load_local_replay(path: Path | None = None) -> dict[str, Any]:
+    """Read and validate an existing report; never start an investigation."""
+    from metric_detective.reporting import validate_report
+
+    if path is None:
+        from metric_detective.resources import load_recorded_report
+
+        report = load_recorded_report()
+    else:
+        report = json.loads(path.read_text(encoding="utf-8"))
+    validate_report(report)
+    return report
+
+
+def _go_to_replay() -> None:
+    st.session_state["workspace_page"] = "Reproducción grabada"
+
+
+def unavailable_page(*, job_id: str | None = None) -> None:
+    st.markdown('<div class="eyebrow">ENTORNO LOCAL</div>', unsafe_allow_html=True)
+    st.subheader("El servicio de investigaciones está detenido")
+    st.warning(
+        "La interfaz está abierta, pero no puede conectarse con la API. Inicia el entorno para crear trabajos o consultar el historial."
+    )
+    if job_id:
+        st.caption(
+            f"Investigación seleccionada: {job_id}. Vuelve a consultarla cuando el servicio esté disponible."
+        )
+    st.markdown("**Desde una terminal en la carpeta del proyecto:**")
+    st.code(
+        "uv run metric-detective local start --open\nuv run metric-detective local status",
+        language="sh",
+    )
+    st.caption(
+        "El inicio local prepara y abre los servicios. Para Docker: docker compose up --build -d. Consulta el README si es tu primera ejecución."
+    )
+    left, right = st.columns(2)
+    if left.button(
+        "Volver a comprobar conexión", width="stretch", key=f"retry_{job_id or 'service'}"
+    ):
+        st.rerun()
+    right.button(
+        "Explorar informe sin conexión",
+        on_click=_go_to_replay,
+        width="stretch",
+        key=f"offline_{job_id or 'service'}",
+    )
+    st.caption(
+        "La reproducción usa un informe guardado; no calcula cifras nuevas ni ejecuta un modelo."
+    )
+
+
+def fetch_health() -> dict[str, Any]:
+    try:
+        return api("GET", "/health/details", timeout=3)
+    except APIError as exc:
+        if exc.status_code == 404:
+            try:
+                return api("GET", "/health", timeout=3)
+            except APIError:
+                pass
+        return {"status": "unavailable", "api_available": False}
+
+
+def service_status(health: dict[str, Any], service: str) -> str:
+    item = health.get(service)
+    if isinstance(item, str):
+        return item
+    if isinstance(item, dict):
+        if item.get("status"):
+            return str(item["status"])
+        for field in ("available", "reachable", "healthy"):
+            if isinstance(item.get(field), bool):
+                return "ok" if item[field] else "unavailable"
+    return "unknown"
+
+
+def model_available(health: dict[str, Any]) -> bool | None:
+    item = health.get("ollama", {})
+    if not isinstance(item, dict):
+        return None
+    for field in ("model_available", "model_installed"):
+        if isinstance(item.get(field), bool):
+            return item[field]
+    return None
+
+
+def system_page(health: dict[str, Any]) -> None:
+    st.markdown('<div class="eyebrow">ESTADO DEL SISTEMA</div>', unsafe_allow_html=True)
+    st.title("Todo listo antes de investigar")
+    st.caption(
+        "Comprueba la base de datos, el trabajador y el modelo configurado. El análisis fijo no necesita un modelo."
+    )
+    if health.get("status") == "unavailable":
+        unavailable_page()
+        return
+    columns = st.columns(3)
+    for column, service, label in zip(
+        columns,
+        ["database", "worker", "ollama"],
+        ["Base de datos", "Trabajador", "Modelo local"],
+        strict=True,
+    ):
+        state = service_status(health, service)
+        okay = state in {"ok", "healthy", "ready", "running", "available"}
+        text = (
+            "Disponible"
+            if okay
+            else ("Sin verificar" if state == "unknown" else "Requiere atención")
+        )
+        column.metric(label, text)
+    item = health.get("ollama", {})
+    if isinstance(item, dict) and item.get("model"):
+        st.caption(f"Modelo configurado: {item['model']}")
+    if model_available(health) is False:
+        st.warning(
+            "El modelo configurado no está instalado o el servidor no está disponible. Puedes usar el punto de referencia o la reproducción grabada."
+        )
+        if isinstance(item, dict) and item.get("model"):
+            st.code(f"ollama pull {item['model']}", language="sh")
+    if service_status(health, "worker") in {
+        "missing",
+        "stopped",
+        "unavailable",
+        "error",
+        "offline",
+    }:
+        st.warning(
+            "No se detectó un trabajador activo. Inicia el entorno local para procesar investigaciones nuevas."
+        )
+    st.code(
+        "uv run metric-detective local status\nuv run metric-detective local start", language="sh"
+    )
+    if st.button("Actualizar comprobaciones", type="primary"):
+        st.rerun()
+    with st.expander("Detalles de diagnóstico"):
+        st.json(health)
 
 
 def numeric(value: Any) -> float | None:
@@ -76,9 +298,14 @@ def numeric(value: Any) -> float | None:
 
 
 def money(value: Any, currency: str | None = "MXN") -> str:
-    number = numeric(value)
+    try:
+        number = Decimal(str(value))
+    except (InvalidOperation, ValueError, TypeError):
+        return "No definido"
+    if not number.is_finite():
+        return "No definido"
     suffix = f" {currency}" if currency else ""
-    return "No definido" if number is None else f"{number:,.2f}{suffix}"
+    return f"{number:,.2f}{suffix}"
 
 
 def percent(value: Any) -> str:
@@ -133,29 +360,55 @@ def daily_chart(evidence: dict[str, Any], currency: str) -> go.Figure:
             )
         )
     figure.update_xaxes(
-        title="Día de la semana comparada", tickmode="array", tickvals=list(range(1, 8))
+        title="Día local de la semana",
+        tickmode="array",
+        tickvals=list(range(1, 8)),
+        ticktext=["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"],
     )
     figure.update_yaxes(title=f"Ingresos · {currency}")
     return chart_style(figure)
 
 
-def segment_label(segment: Any) -> str:
+def dimension_label(dimension: str, config: dict[str, Any] | None = None) -> str:
+    source = (config or {}).get("dimensions", {}).get(dimension)
+    return SOURCE_LABELS.get(
+        source, DIMENSION_LABELS.get(dimension, dimension.replace("_", " ").capitalize())
+    )
+
+
+def segment_value(value: Any, dimension: str | None = None) -> str:
+    text = str(value)
+    if dimension == "country":
+        return COUNTRY_LABELS.get(text, text)
+    return SEGMENT_LABELS.get(text, text)
+
+
+def segment_label(
+    segment: Any, dimension: str | None = None, config: dict[str, Any] | None = None
+) -> str:
     if isinstance(segment, dict):
         return " · ".join(
-            f"{key}: {'Sin valor' if value == '__missing__' else value}"
+            f"{dimension_label(key, config)}: {segment_value(value, key)}"
             for key, value in segment.items()
         )
-    return str(segment).replace("__missing__", "Sin valor")
+    return segment_value(segment, dimension)
 
 
-def segment_chart(evidence: dict[str, Any], currency: str) -> go.Figure:
+def segment_chart(
+    evidence: dict[str, Any], currency: str, config: dict[str, Any] | None = None
+) -> go.Figure:
     rows = evidence.get("values", {}).get("segments", [])
     rows = sorted(rows, key=lambda row: numeric(row.get("delta_revenue")) or 0)
     changes = [numeric(row.get("delta_revenue")) or 0 for row in rows]
     figure = go.Figure(
         go.Bar(
             x=changes,
-            y=[segment_label(row.get("segment", "")) for row in rows],
+            y=[
+                segment_label(
+                    row.get("segment", ""), evidence.get("values", {}).get("dimension"), config
+                )
+                for row in rows
+            ],
             orientation="h",
             marker_color=[CORAL if value < 0 else TEAL for value in changes],
             text=[money(row.get("delta_revenue"), currency) for row in rows],
@@ -217,12 +470,90 @@ def references(claim: Any) -> str:
     return " · ".join(str(ref) for ref in refs)
 
 
-def render_report(report: dict[str, Any], *, replay: bool = False) -> None:
+def concise_findings(report: dict[str, Any]) -> list[dict[str, Any]]:
+    """Select existing checked claims without adding a numerical conclusion."""
+    selected: list[dict[str, Any]] = []
+    partitions: set[tuple[str, ...]] = set()
+    by_id = {item["id"]: item for item in report.get("evidence", [])}
+    for finding in report.get("findings", []):
+        kind = finding.get("kind")
+        if kind in {
+            "data_quality",
+            "observed_orders",
+            "no_relevant_change",
+            "arithmetic_contribution",
+        }:
+            selected.append(finding)
+        elif kind == "segment_change" and len(partitions) < 2:
+            evidence = by_id.get(finding.get("evidence_id"), {})
+            values = evidence.get("values", {})
+            dimensions = tuple(values.get("dimensions", [values.get("dimension", "")]))
+            if dimensions not in partitions:
+                selected.append(finding)
+                partitions.add(dimensions)
+    return selected
+
+
+def finding_display(finding: dict[str, Any], report: dict[str, Any]) -> str:
+    if finding.get("kind") != "segment_change":
+        return claim_text(finding)
+    by_id = {item["id"]: item for item in report.get("evidence", [])}
+    item = by_id.get(finding.get("evidence_id"), {})
+    values = item.get("values", {})
+    try:
+        index = int(finding["path"].split(".")[1])
+        row = values["segments"][index]
+    except (ValueError, KeyError, IndexError):
+        return claim_text(finding)
+    config = report.get("request", {}).get("config", {})
+    dimension = values.get("dimension")
+    title = dimension_label(dimension, config) if dimension else "Cruce de segmentos"
+    label = segment_label(row["segment"], dimension, config)
+    return f"{title}: {label} · cambio de {money(finding['value'], config.get('currency', 'MXN'))}."
+
+
+def show_quality(report: dict[str, Any]) -> None:
+    quality = next(iter(evidence_for(report, "check_data_quality")), None)
+    if quality is None:
+        st.warning("Esta ejecución no completó la comprobación de calidad de datos.")
+        return
+    status = quality.get("values", {}).get("status")
+    if status == "blocked":
+        st.error(
+            "Diagnóstico de negocio bloqueado. Corrige la calidad de los datos antes de interpretar ingresos."
+        )
+        for issue in quality.get("values", {}).get("issues", []):
+            st.markdown(
+                f"- {ISSUE_LABELS.get(issue, 'Consulta el detalle de calidad en la evidencia.')}"
+            )
+    elif status == "unverified":
+        st.warning(
+            "Completitud no verificada. Las cifras describen los archivos recibidos; falta confirmar las cargas de todas las fechas y fuentes."
+        )
+    elif status == "ok":
+        st.caption(
+            "✓ Sin bloqueos de calidad detectados · Cargas declaradas completas para los periodos seleccionados."
+        )
+    st.caption(f"Comprobación de calidad: {quality['id']}")
+
+
+def render_report(report: dict[str, Any], *, replay: bool = False, offline: bool = False) -> None:
+    from metric_detective.reporting import validate_report
+
+    try:
+        validate_report(report)
+    except (ValueError, KeyError, TypeError):
+        st.error("El informe no superó la validación de evidencia. No se muestran sus cifras.")
+        return
     if replay:
         st.info(
             "REPRODUCCIÓN GRABADA · Este informe se calculó previamente con datos sintéticos. "
             "Explorar esta vista no ejecuta un modelo ni inicia una investigación nueva."
         )
+        if offline:
+            st.caption(
+                "SIN CONEXIÓN CON LA API · Archivo incluido con la aplicación. No se consulta el estado actual del servidor."
+            )
     config = report.get("request", {}).get("config", {})
     currency = config.get("currency", "MXN")
     status = report.get("status", "partial")
@@ -240,6 +571,19 @@ def render_report(report: dict[str, Any], *, replay: bool = False) -> None:
         f"Comparación: {period_request.get('comparison_start', '—')} · "
         f"Semanas de 7 días · {config.get('timezone', 'Zona horaria en la evidencia')}"
     )
+    mode = report.get("mode")
+    provider = report.get("metrics", {}).get("provider")
+    if mode == "baseline":
+        st.caption("Método: punto de referencia · secuencia fija de análisis, sin modelo.")
+    elif provider == "scripted_test_double":
+        st.caption(
+            "Método: doble determinista de pruebas · no corresponde a una ejecución real de un modelo."
+        )
+    else:
+        st.caption(
+            f"Método: agente · {report.get('metrics', {}).get('model', 'modelo registrado')}"
+        )
+    show_quality(report)
 
     summaries = evidence_for(report, "compare_periods")
     summary = summaries[0] if summaries else None
@@ -288,16 +632,20 @@ def render_report(report: dict[str, Any], *, replay: bool = False) -> None:
         ["Hallazgos y límites", "Gráficos", "Evidencia y decisiones"]
     )
     with overview:
-        findings = report.get("findings", [])
-        st.markdown("#### Hallazgos respaldados")
+        findings = concise_findings(report)
+        st.markdown("#### Qué muestran los datos")
         if not findings:
             st.caption("No hay hallazgos de negocio respaldados para esta ejecución.")
         for finding in findings:
-            text = claim_text(finding)
+            text = finding_display(finding, report)
             if text:
                 st.markdown(f"- {text}")
             if refs := references(finding):
                 st.caption(f"Evidencia: {refs}")
+        with st.expander(f"Ver los {len(report.get('findings', []))} hallazgos verificados"):
+            for finding in report.get("findings", []):
+                st.markdown(f"- {finding_display(finding, report)}")
+                st.caption(f"Evidencia: {references(finding)}")
         left, right = st.columns(2, gap="large")
         with left:
             st.markdown("#### Hipótesis pendientes")
@@ -327,7 +675,13 @@ def render_report(report: dict[str, Any], *, replay: bool = False) -> None:
             "Las contribuciones describen dónde cambió el ingreso; no prueban una causa. Devoluciones fuera de alcance."
         )
         for error in report.get("errors", []):
-            st.warning(claim_text(error) or str(error))
+            code = str(error)
+            st.warning(
+                ERROR_LABELS.get(
+                    code,
+                    "La ejecución tiene una limitación adicional. Consulta el registro y su código en evidencia.",
+                )
+            )
     with charts:
         daily = evidence_for(report, "inspect_daily_pattern")
         decompositions = evidence_for(report, "decompose_revenue_change")
@@ -343,7 +697,9 @@ def render_report(report: dict[str, Any], *, replay: bool = False) -> None:
             st.markdown("#### Evolución diaria")
             for index, item in enumerate(daily):
                 if item.get("filters"):
-                    st.caption(f"Filtros: {item['filters']}")
+                    st.caption(f"Filtros: {segment_label(item['filters'], config=config)}")
+                else:
+                    st.caption("Todos los pedidos · sin filtros de segmento")
                 st.plotly_chart(daily_chart(item, currency), width="stretch", key=f"daily_{index}")
                 st.caption(f"Fuente: {item['id']} · Los días se alinean dentro de cada semana.")
         if decompositions and summary:
@@ -363,10 +719,16 @@ def render_report(report: dict[str, Any], *, replay: bool = False) -> None:
             )
             for index, item in enumerate(partitions):
                 values = item.get("values", {})
-                dimension = values.get("dimension") or " × ".join(values.get("dimensions", []))
+                dimension = (
+                    dimension_label(values["dimension"], config)
+                    if values.get("dimension")
+                    else " × ".join(
+                        dimension_label(name, config) for name in values.get("dimensions", [])
+                    )
+                )
                 st.markdown(f"**{dimension or 'Segmentos'}**")
                 st.plotly_chart(
-                    segment_chart(item, currency), width="stretch", key=f"segments_{index}"
+                    segment_chart(item, currency, config), width="stretch", key=f"segments_{index}"
                 )
                 st.caption(f"Fuente: {item['id']}")
                 with st.expander(f"Ver cifras de la partición {index + 1}"):
@@ -385,10 +747,15 @@ def render_report(report: dict[str, Any], *, replay: bool = False) -> None:
         for item in report.get("evidence", []):
             with st.expander(f"{item.get('tool', 'Análisis')} · {item.get('id', '—')}"):
                 for warning in item.get("warnings", []):
-                    st.warning(warning)
+                    st.warning(
+                        ISSUE_LABELS.get(
+                            warning,
+                            "Consulta el código de esta advertencia en el resultado original.",
+                        )
+                    )
                 st.json(item)
         with st.expander("Registro de ejecución"):
-            st.json(report.get("metrics", {}))
+            st.json({"metrics": report.get("metrics", {}), "error_codes": report.get("errors", [])})
             st.caption(
                 "Los costos no disponibles no equivalen a costo cero. Los tokens pertenecen al proveedor registrado."
             )
@@ -417,34 +784,54 @@ def render_report(report: dict[str, Any], *, replay: bool = False) -> None:
         download_right.caption("La exportación HTML requiere un informe validado.")
 
 
+PHASE_LABELS = {
+    "validate": "Validando la solicitud y la definición de la métrica",
+    "quality": "Comprobando pedidos y completitud de las cargas",
+    "compare": "Calculando el cambio entre las dos semanas",
+    "select": "Seleccionando la siguiente comprobación",
+    "execute": "Ejecutando un análisis y registrando evidencia",
+    "review": "Revisando la evidencia y los límites de la investigación",
+    "finalize": "Validando el informe y sus referencias",
+    "done": "Informe preparado",
+    "finished": "Informe preparado",
+}
+
+
+def job_progress(job: dict[str, Any]) -> tuple[str, int | None]:
+    progress = job.get("progress") or {}
+    phase = (
+        progress.get("phase", progress.get("stage", ""))
+        if isinstance(progress, dict)
+        else str(progress)
+    )
+    label = PHASE_LABELS.get(phase, "Procesando la investigación")
+    if job.get("status") == "queued":
+        label = "Esperando a que el trabajador recoja el trabajo"
+    count = progress.get("evidence_count") if isinstance(progress, dict) else None
+    return label, count if isinstance(count, int) and count >= 0 else None
+
+
 def poll_job(job_id: str) -> None:
     @st.fragment(run_every="2s")
     def progress_fragment() -> None:
         try:
             job = api("GET", f"/investigations/{job_id}")
-        except APIError as exc:
-            st.error(str(exc))
+        except APIError:
+            unavailable_page(job_id=job_id)
             return
         status = job.get("status", "queued")
-        st.markdown(f"**{STATUS.get(status, status)}** · `{job_id}`")
-        progress = job.get("progress")
-        if progress:
-            if isinstance(progress, dict):
-                st.caption(
-                    str(
-                        progress.get("stage")
-                        or progress.get("phase")
-                        or progress.get("message")
-                        or "Procesando evidencia"
-                    )
-                )
-            else:
-                st.caption(str(progress))
+        stage, count = job_progress(job)
         if status in {"queued", "running"}:
-            st.progress(
-                0.12 if status == "queued" else 0.55,
-                text="El trabajo continúa aunque cierres esta vista.",
+            # A status context manager marks itself complete on exit. The
+            # database job, rather than this render, determines completion.
+            progress_box = st.status(STATUS.get(status, status), state="running", expanded=True)
+            progress_box.write(stage)
+            if count is not None:
+                progress_box.caption(f"{count} resultados de evidencia registrados.")
+            progress_box.caption(
+                "El trabajo se guarda en el servidor. Puedes consultar su avance desde Historial."
             )
+            st.caption(f"ID de investigación: {job_id}")
             return
         st.session_state["active_job"] = None
         st.session_state["last_job"] = job
@@ -453,16 +840,23 @@ def poll_job(job_id: str) -> None:
     progress_fragment()
 
 
-def new_investigation() -> None:
+def new_investigation(health: dict[str, Any] | None = None) -> None:
     st.markdown('<div class="eyebrow">NUEVA INVESTIGACIÓN</div>', unsafe_allow_html=True)
     st.title("¿Dónde cambió el ingreso?")
     st.markdown(
         "Compara dos semanas completas. Obtén cifras reproducibles, segmentos relevantes y límites claros."
     )
+    health = health or {}
+    if health.get("status") == "unavailable":
+        unavailable_page()
+        return
     try:
         response = api("GET", "/scenarios")
     except APIError as exc:
-        st.error(str(exc))
+        if exc.code in {"connection_unavailable", "database_unavailable"}:
+            unavailable_page()
+        else:
+            st.error(str(exc))
         return
     scenarios = response.get("scenarios", []) if isinstance(response, dict) else response
     if not scenarios:
@@ -494,9 +888,11 @@ def new_investigation() -> None:
             "CSV UTF-8, una fila por pedido. Límite de API predeterminado: 10 MiB entre ambos archivos; 100 000 filas por archivo. No incluyas datos personales."
         )
         upload_left, upload_right = st.columns(2)
-        uploaded_orders = upload_left.file_uploader("orders.csv · pedidos", type=["csv"])
+        uploaded_orders = upload_left.file_uploader(
+            "orders.csv · pedidos", type=["csv"], max_upload_size=10
+        )
         uploaded_loads = upload_right.file_uploader(
-            "loads.csv · completitud (opcional)", type=["csv"]
+            "loads.csv · completitud (opcional)", type=["csv"], max_upload_size=10
         )
         if uploaded_loads is None:
             st.caption(
@@ -525,14 +921,31 @@ def new_investigation() -> None:
         f"Referencia: {reference} → {reference + timedelta(days=6)} · "
         f"Comparación: {comparison} → {comparison + timedelta(days=6)}"
     )
+    live_ready = model_available(health)
     method = st.radio(
         "Método de investigación",
         ["Agente · modelo local", "Punto de referencia · secuencia fija"],
         horizontal=True,
+        index=1 if live_ready is False else 0,
     )
     st.caption(
         "El agente selecciona análisis a partir de los resultados. El punto de referencia ejecuta una secuencia fija sin LLM."
     )
+    if live_ready is False:
+        st.info(
+            "El modelo no está disponible. El punto de referencia permite investigar ahora; revisa Estado del sistema para activar el agente."
+        )
+    worker_missing = service_status(health, "worker") in {
+        "missing",
+        "stopped",
+        "unavailable",
+        "error",
+        "offline",
+    }
+    if worker_missing:
+        st.warning(
+            "No se detectó un trabajador activo. Inicia el entorno local antes de crear una investigación."
+        )
     with st.expander("Límites de la investigación"):
         limit_left, limit_right = st.columns(2)
         max_calls = limit_left.number_input(
@@ -551,7 +964,9 @@ def new_investigation() -> None:
         "Investigar caída",
         type="primary",
         width="stretch",
-        disabled=bool(st.session_state.get("active_job")),
+        disabled=bool(st.session_state.get("active_job"))
+        or worker_missing
+        or (method.startswith("Agente") and live_ready is False),
     ):
         try:
             from metric_detective.contracts import InvestigationRequest, MetricConfig
@@ -590,8 +1005,12 @@ def new_investigation() -> None:
             st.session_state["active_job"] = job["id"]
             st.session_state["last_job"] = None
             st.rerun()
-        except (APIError, ValueError, TypeError) as exc:
+        except APIError as exc:
             st.error(str(exc))
+        except (ValueError, TypeError):
+            st.error(
+                "Revisa la configuración de la métrica y los periodos: deben empezar en lunes, durar siete días y no superponerse."
+            )
     if active := st.session_state.get("active_job"):
         st.divider()
         poll_job(active)
@@ -606,10 +1025,13 @@ def new_investigation() -> None:
             )
 
 
-def history() -> None:
+def history(health: dict[str, Any] | None = None) -> None:
     st.markdown('<div class="eyebrow">HISTORIAL PERSISTENTE</div>', unsafe_allow_html=True)
     st.title("Cada investigación deja rastro")
     st.caption("Abre trabajos anteriores y consulta su evidencia o su estado actual.")
+    if (health or {}).get("status") == "unavailable":
+        unavailable_page()
+        return
     try:
         response = api("GET", "/investigations")
         jobs = (
@@ -637,7 +1059,10 @@ def history() -> None:
         else:
             st.error(detail.get("error") or "La investigación no tiene un informe disponible.")
     except APIError as exc:
-        st.error(str(exc))
+        if exc.code in {"connection_unavailable", "database_unavailable"}:
+            unavailable_page()
+        else:
+            st.error(str(exc))
 
 
 def replay_page() -> None:
@@ -650,8 +1075,14 @@ def replay_page() -> None:
         response = api("GET", "/replay")
         report = response.get("report", response)
         render_report(report, replay=True)
-    except APIError as exc:
-        st.error(str(exc))
+    except APIError:
+        try:
+            report = load_local_replay()
+            render_report(report, replay=True, offline=True)
+        except (OSError, ValueError, KeyError, TypeError):
+            st.error(
+                "No hay una reproducción local válida disponible. Inicia el entorno o reinstala los archivos del proyecto."
+            )
 
 
 def main() -> None:
@@ -689,6 +1120,7 @@ def main() -> None:
         </style>""",
         unsafe_allow_html=True,
     )
+    health = fetch_health()
     with st.sidebar:
         st.markdown(
             '<div class="brand-mark">◈</div><div class="brand">Metric<br>Detective</div>',
@@ -698,9 +1130,30 @@ def main() -> None:
         st.divider()
         page = st.radio(
             "Espacio de trabajo",
-            ["Nueva investigación", "Reproducción grabada", "Historial"],
+            ["Nueva investigación", "Reproducción grabada", "Historial", "Estado del sistema"],
             label_visibility="collapsed",
+            key="workspace_page",
         )
+        st.divider()
+        if health.get("status") == "unavailable":
+            st.caption("○ API sin conexión · Reproducción local disponible")
+        else:
+            st.caption("● API conectada")
+            worker = service_status(health, "worker")
+            if worker in {"ok", "running", "ready", "healthy", "available"}:
+                st.caption("● Trabajador disponible")
+            elif worker == "unknown":
+                st.caption("○ Trabajador sin verificar")
+            else:
+                st.caption("○ Trabajador requiere atención")
+            available = model_available(health)
+            st.caption(
+                "● Modelo disponible"
+                if available is True
+                else "○ Modelo no disponible"
+                if available is False
+                else "○ Modelo sin verificar"
+            )
         st.divider()
         st.markdown(
             '<div class="sidebar-note">Una métrica definida.<br>Dos semanas comparables.<br>Cifras que puedes comprobar.</div>',
@@ -711,11 +1164,13 @@ def main() -> None:
             unsafe_allow_html=True,
         )
     if page == "Historial":
-        history()
+        history(health)
     elif page == "Reproducción grabada":
         replay_page()
+    elif page == "Estado del sistema":
+        system_page(health)
     else:
-        new_investigation()
+        new_investigation(health)
 
 
 if __name__ == "__main__":

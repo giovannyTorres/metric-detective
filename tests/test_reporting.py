@@ -7,7 +7,12 @@ import pytest
 from metric_detective.agent import run_investigation
 from metric_detective.contracts import InvestigationRequest
 from metric_detective.engine import AnalysisEngine
-from metric_detective.reporting import canonical_findings, render_html, validate_report
+from metric_detective.reporting import (
+    canonical_findings,
+    canonical_hypotheses,
+    render_html,
+    validate_report,
+)
 from metric_detective.synthetic import generate_scenario
 
 
@@ -129,3 +134,45 @@ def test_rejects_unexplained_deleted_limitations(report):
     altered["missing_data"] = []
     with pytest.raises(ValueError, match="missing_information"):
         validate_report(altered)
+
+
+def test_v2_hypothesis_check_targets_observed_segment_with_evidence(report):
+    assert report["investigator_version"] == "2.0"
+    hypothesis = report["hypotheses"][0]
+    assert "device=mobile" in hypothesis["next_check"]
+    assert len(hypothesis["evidence_ids"]) == 2
+    assert report["analysis_coverage"]["complete"] is True
+    assert "Cobertura de la investigación" in render_html(report)
+
+
+def test_report_cannot_claim_missing_analyses_were_completed(report):
+    report["analysis_coverage"]["available"] = []
+    with pytest.raises(ValueError, match="analysis_coverage"):
+        validate_report(report)
+
+
+def test_historical_v1_report_grammar_remains_valid(report):
+    report.pop("investigator_version")
+    report.pop("analysis_coverage")
+    report["hypotheses"] = canonical_hypotheses(report["evidence"])
+    validate_report(report)
+
+
+def test_valid_citation_and_template_cannot_support_impossible_percentage(report):
+    compare = next(e for e in report["evidence"] if e["tool"] == "compare_periods")
+    compare["values"]["delta_pct"] = "999"
+    report["findings"] = canonical_findings(report["evidence"], "MXN")
+    with pytest.raises(ValueError, match="percentage_contradicts"):
+        validate_report(report)
+
+
+def test_blocked_status_requires_actual_blocking_quality_evidence(report):
+    report["status"] = "blocked_data_quality"
+    with pytest.raises(ValueError, match="blocked_status_requires"):
+        validate_report(report)
+
+
+def test_unknown_report_schema_is_rejected(report):
+    report["schema_version"] = "999"
+    with pytest.raises(ValueError, match="unsupported_report_schema"):
+        validate_report(report)

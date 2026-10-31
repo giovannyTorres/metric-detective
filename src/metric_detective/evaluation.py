@@ -25,9 +25,17 @@ from zoneinfo import ZoneInfo
 from .agent import run_investigation
 from .contracts import InvestigationRequest
 from .engine import AnalysisEngine
-from .provider import SYSTEM_PROMPT, OllamaProvider, ScriptedProvider, ToolDecision
+from .provider import (
+    SELECTION_PROTOCOL,
+    SYSTEM_PROMPT,
+    OllamaProvider,
+    ScriptedProvider,
+    action_schema,
+)
 from .reporting import canonical_findings, validate_report
-from .synthetic import EVALUATION_SEEDS, EXPECTATIONS, SCENARIOS, generate_scenario
+from .synthetic import EXPECTATIONS, SCENARIOS, generate_scenario
+
+EVALUATION_SEEDS = (303, 404)
 
 
 def _source_records(path: Path, request: InvestigationRequest) -> list[dict[str, Any]]:
@@ -269,11 +277,15 @@ def evaluate(
     if provider_name not in {"scripted", "ollama"}:
         raise ValueError("unsupported_evaluation_provider")
     output = Path(output)
+    if (output / "results.json").exists():
+        raise ValueError("evaluation_output_already_exists_choose_new_directory")
     output.mkdir(parents=True, exist_ok=True)
     provider = OllamaProvider() if provider_name == "ollama" else ScriptedProvider()
     records = []
     metadata: dict[str, Any] = {
         "schema_version": "1.0",
+        "investigator_version": "2.0",
+        "selection_protocol": SELECTION_PROTOCOL,
         "created_at_utc": datetime.now(UTC).isoformat(),
         "evaluation_kind": "real_llm"
         if provider_name == "ollama"
@@ -289,15 +301,17 @@ def evaluate(
             "max_seconds": max_seconds,
             "max_tokens": max_tokens,
             "max_retries": 1,
-            "output_token_cap": 384,
+            "output_token_cap": 64,
             "num_ctx": 8192,
         },
         "development_seed": 17,
         "evaluation_seeds": list(seeds),
         "scenarios": selected,
-        "prompt_sha256": hashlib.sha256(
-            (SYSTEM_PROMPT + json.dumps(ToolDecision.model_json_schema(), sort_keys=True)).encode()
+        "prompt_sha256": hashlib.sha256(SYSTEM_PROMPT.encode()).hexdigest(),
+        "schema_template_sha256": hashlib.sha256(
+            json.dumps(action_schema(["<admissible_action_id>"]), sort_keys=True).encode()
         ).hexdigest(),
+        "schema_note": "Each request expands the schema enum to its actual admitted action IDs. Model choice selects the associated controlled tool and parameters.",
         "python": platform.python_version(),
         "latency_scope": "LangGraph execution wall time; excludes CSV validation and DuckDB ingestion performed before run_investigation in this evaluator.",
         "packages": {
@@ -398,7 +412,7 @@ def main() -> None:
     parser.add_argument("--max-tokens", type=int, default=20000)
     args = parser.parse_args()
     output = args.output or Path("evaluation") / (
-        "real-ollama" if args.provider == "ollama" else "smoke-scripted"
+        "real-ollama-v2" if args.provider == "ollama" else "smoke-scripted-v2"
     )
     result = evaluate(
         output,

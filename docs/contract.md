@@ -95,7 +95,15 @@ system from these files alone.
 The no-relevant-change criterion compares the absolute revenue percentage change
 with the configured `relevant_change_pct` threshold. A threshold is an operating
 rule, not a statistical significance test. Percent change is undefined when the
-reference revenue is zero. The report must state that limitation.
+reference revenue is zero. A nonzero change is relevant when its absolute
+percentage is at least the threshold; if reference revenue is zero, a nonzero
+absolute change is relevant and its percentage remains undefined. An exact zero
+change is never relevant, even with a zero threshold. The report must state the
+zero-denominator limitation.
+
+Column and logical dimension names must be safe identifiers. Logical dimension
+names are distinct ignoring case and cannot collide with the canonical/reserved
+column names. Configuration validation rejects collisions before DuckDB runs.
 
 The service example maps invoice fields to this same contract. Its revenue is
 paid invoice amount and its count is paid invoices; this is not recurring revenue,

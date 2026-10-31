@@ -1,5 +1,7 @@
 # Metric Detective
 
+[![Pruebas](https://github.com/giovannyTorres/metric-detective/actions/workflows/ci.yml/badge.svg)](https://github.com/giovannyTorres/metric-detective/actions/workflows/ci.yml)
+
 **Investiga un cambio en ingresos. Revisa la evidencia. Reconoce lo que falta.**
 
 Aplicación local de portafolio con interfaz en español, un investigador acotado
@@ -8,12 +10,12 @@ Compara dos semanas completas: cambio en ingresos, contribuciones de volumen y
 ticket, segmentos, evolución diaria y evidencia reproducible. Solo datos sintéticos.
 
 [English README](README.md) · [Contrato](docs/contract.md) ·
-[Arquitectura](docs/architecture.md) · [Verificaciones](docs/verification.md) ·
-[Evaluación](docs/evaluation.md)
+[Arquitectura](docs/architecture.md) · [Verificaciones](docs/verification-v2.md) ·
+[Evaluación](docs/evaluation-v2.md)
 
-![Recorrido real con API, PostgreSQL y trabajador usando el punto de referencia](docs/assets/walkthrough.gif)
+![Recorrido real con API, PostgreSQL y trabajador usando el modelo local real](docs/assets/walkthrough.gif)
 
-El recorrido muestra una ejecución real del punto de referencia. La reproducción
+El recorrido muestra una investigación real con Ollama. La reproducción
 grabada, el análisis fijo y una investigación nueva con modelo son modos distintos.
 
 ## Qué puedes hacer
@@ -36,6 +38,8 @@ necesitan modelo ni clave. Una investigación nueva con el agente necesita un
 servidor Ollama accesible y el modelo configurado.
 
 ```sh
+git clone https://github.com/giovannyTorres/metric-detective.git
+cd metric-detective
 cp .env.example .env
 docker compose up --build -d
 ```
@@ -49,34 +53,46 @@ Compose ejecuta API, trabajador, interfaz y PostgreSQL con volúmenes persistent
 y puertos en loopback. Configura `.env`: la contraseña incluida es un ejemplo
 local. `docker compose logs -f worker` muestra el trabajo;
 `docker compose stop` detiene servicios y conserva los datos. El
-[registro de verificación](docs/verification.md) distingue lo ejecutado de la
+[registro de verificación](docs/verification-v2.md) distingue lo ejecutado de la
 configuración que no se ha probado.
 
 ## Inicio nativo
 
-Requiere Python 3.11–3.13, `uv` y PostgreSQL con una base/usuario que coincidan con
-`MD_DATABASE_URL`. Consulta las versiones probadas en el registro de verificación.
+Requiere Python 3.11–3.13, `uv` y PostgreSQL. Configura una base/usuario en
+`MD_DATABASE_URL`, o indica tus directorios de binarios/datos de PostgreSQL al
+iniciador local. Consulta las versiones probadas en el registro de verificación.
 No se sustituye la persistencia por SQLite.
 
 ```sh
 cp .env.example .env
 uv sync --locked --extra dev
-uv run --env-file .env metric-detective init-db
+uv run --env-file .env metric-detective local start --open
 ```
 
-Desde la raíz del repositorio, ejecuta cada comando en una terminal:
+El iniciador mantiene API, trabajador e interfaz como procesos supervisados en
+segundo plano. No necesitas dejar tres terminales abiertas. Por defecto abre la
+[interfaz en el puerto 18501](http://127.0.0.1:18501) y la
+[API en el 18000](http://127.0.0.1:18000/docs). Son distintos de los puertos
+8501/8000 de Compose. Si los cambias, usa las direcciones que indique el iniciador.
+
+En Windows, después de configurar el proyecto, haz doble clic en
+**Iniciar Metric Detective.cmd**. Ejecútalo de nuevo después de reiniciar el equipo.
+Consulta [inicio local y recuperación](docs/local-runtime.md) para revisar el
+estado, detener los procesos o configurar PostgreSQL portátil.
 
 ```sh
-uv run --env-file .env uvicorn metric_detective.api:create_app --factory --host 127.0.0.1 --port 8000
+uv run metric-detective local status
+uv run metric-detective local stop
 ```
 
-```sh
-uv run --env-file .env metric-detective worker
-```
+`--help` describe `--postgres-bin`, `--postgres-data` y `--postgres-port` para
+un PostgreSQL local. El iniciador no instala el sistema de base de datos ni
+contrata servicios. Mantén disponible la base configurada para ejecutar trabajos.
 
-```sh
-uv run --env-file .env streamlit run src/metric_detective/ui.py --server.port 8501
-```
+En **Estado del sistema** puedes revisar API/base, trabajador y modelo. Si la API
+se detiene, la interfaz muestra instrucciones de inicio y permite explorar la
+reproducción incluida sin conexión. Esa vista muestra resultados guardados; no
+ejecuta el modelo ni crea una investigación nueva.
 
 La API prepara los escenarios. Regenera los datos incluidos con
 `uv run metric-detective generate --output data --seed 17`.
@@ -153,8 +169,8 @@ uv run --extra dev pytest -q
 CI usa dobles deterministas identificados sin credenciales de modelos. Las pruebas
 de PostgreSQL/recuperación requieren `MD_TEST_DATABASE_URL` con una base separada y
 desechable. La evaluación real del LLM está aparte. Consulta
-[resultados y comandos](docs/evaluation.md) y
-[comprobaciones ejecutadas](docs/verification.md).
+[resultados y comandos](docs/evaluation-v2.md) y
+[comprobaciones ejecutadas](docs/verification-v2.md).
 
 Agente y punto de referencia usan los mismos datos/herramientas. Se miden
 exactitud, cobertura de segmentos, afirmaciones sin respaldo, abstención,

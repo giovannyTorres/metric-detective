@@ -61,8 +61,11 @@ class MetricConfig(Contract):
             raise ValueError("column and dimension names must be safe identifiers")
         if len(columns) != len(set(columns)):
             raise ValueError("configured source columns must be distinct")
+        logical_dimensions = [name.casefold() for name in self.dimensions]
+        if len(logical_dimensions) != len(set(logical_dimensions)):
+            raise ValueError("logical dimensions must be distinct ignoring case")
         reserved = {"order_id", "local_date", "status", "amount", "currency", "period"}
-        if reserved.intersection(self.dimensions):
+        if reserved.intersection(logical_dimensions):
             raise ValueError("logical dimension names conflict with canonical columns")
         for items in (self.included_statuses, self.expected_sources):
             if len(items) != len(set(items)):
@@ -100,13 +103,14 @@ class InvestigationRequest(Contract):
 
     @model_validator(mode="after")
     def full_weeks(self) -> InvestigationRequest:
+        # Check bounds before adding seven days; date.max input must produce a
+        # contract validation error rather than an uncaught arithmetic overflow.
+        if max(self.reference_start, self.comparison_start) > date(9999, 12, 24):
+            raise ValueError("selected period exceeds the supported date range")
         if self.reference_start.weekday() or self.comparison_start.weekday():
             raise ValueError("periods must start on Monday; each covers seven complete local days")
         if self.comparison_start < self.reference_start + timedelta(days=7):
             raise ValueError("comparison must follow the complete reference week without overlap")
-        # Prevent date arithmetic overflow in the engine and exporters.
-        if self.comparison_start > date(9999, 12, 24):
-            raise ValueError("comparison period exceeds the supported date range")
         return self
 
     def periods(self) -> dict[str, dict[str, str]]:

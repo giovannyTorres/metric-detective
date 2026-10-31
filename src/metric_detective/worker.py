@@ -2,7 +2,7 @@
 
 import logging
 import threading
-import time
+import uuid
 from pathlib import Path
 
 from metric_detective.agent import initial_state, run_investigation
@@ -80,13 +80,34 @@ def process_one(store: Store, provider=None, checkpoint_observer=None) -> bool:
 def run_worker(settings: Settings | None = None, once: bool = False):
     store = Store(settings or Settings.from_env())
     store.initialize()
-    while True:
+    worker_id = str(uuid.uuid4())
+    stop = threading.Event()
+    store.touch_worker(worker_id)
+
+    def presence():
+        while not stop.wait(5):
+            try:
+                store.touch_worker(worker_id)
+            except Exception as error:
+                logger.warning("worker_presence_error code=%s", type(error).__name__)
+
+    thread = threading.Thread(target=presence, daemon=True)
+    thread.start()
+    try:
+        while True:
+            try:
+                processed = process_one(store)
+            except Exception as error:
+                logger.error("worker_database_error code=%s", type(error).__name__)
+                processed = False
+            if once:
+                return
+            if not processed:
+                stop.wait(1)
+    finally:
+        stop.set()
+        thread.join(timeout=2)
         try:
-            processed = process_one(store)
-        except Exception as error:
-            logger.error("worker_database_error code=%s", type(error).__name__)
-            processed = False
-        if once:
-            return
-        if not processed:
-            time.sleep(1)
+            store.forget_worker(worker_id)
+        except Exception:
+            pass

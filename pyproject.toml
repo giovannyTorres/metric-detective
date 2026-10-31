@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "metric-detective"
-version = "0.1.0"
+version = "0.2.0"
 description = "Evidence-first revenue investigations with DuckDB and a bounded LangGraph investigator"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
@@ -23,6 +23,7 @@ dependencies = [
   "httpx==0.28.1",
   "tzdata==2026.2",
   "python-dotenv==1.2.2",
+  "psutil==7.2.2",
 ]
 
 [project.optional-dependencies]

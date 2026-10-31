@@ -27,6 +27,9 @@ def test_configuration_rejects_sql_names_unknown_timezones_and_column_aliasing()
         {"timezone": "Not/A_Zone"},
         {"amount_column": "order_id"},
         {"dimensions": {"amount": "device"}},
+        {"dimensions": {"AMOUNT": "device"}},
+        {"dimensions": {"Period": "device"}},
+        {"dimensions": {"Device": "device", "device": "channel"}},
         {"included_statuses": ["paid", "paid"]},
         {"expected_sources": [""]},
     ):
@@ -43,4 +46,11 @@ def test_limits_are_bounded_and_unknown_fields_rejected():
             dataset_id="../private",
             reference_start=date(2026, 1, 5),
             comparison_start=date(2026, 1, 12),
+        )
+
+
+def test_extreme_date_input_is_rejected_without_overflow():
+    with pytest.raises(ValidationError, match="supported date range"):
+        InvestigationRequest(
+            dataset_id="demo", reference_start="9999-12-27", comparison_start="9999-12-27"
         )

@@ -1,5 +1,7 @@
 # Metric Detective
 
+[![Checks](https://github.com/giovannyTorres/metric-detective/actions/workflows/ci.yml/badge.svg)](https://github.com/giovannyTorres/metric-detective/actions/workflows/ci.yml)
+
 **Investigate a revenue change. Inspect the evidence. Know what remains unknown.**
 
 A local portfolio application with a Spanish interface, a bounded LangGraph
@@ -8,12 +10,12 @@ complete weeks: revenue changes, volume/ticket contributions, segment
 concentration, daily charts and reproducible evidence. Synthetic data only.
 
 [Leer en español](README.es.md) · [Data contract](docs/contract.md) ·
-[Architecture](docs/architecture.md) · [Verification](docs/verification.md) ·
-[Evaluation](docs/evaluation.md)
+[Architecture](docs/architecture.md) · [Verification](docs/verification-v2.md) ·
+[Evaluation](docs/evaluation-v2.md)
 
-![Actual API, PostgreSQL and worker walkthrough using the deterministic baseline](docs/assets/walkthrough.gif)
+![Actual API, PostgreSQL and worker walkthrough using the real local model](docs/assets/walkthrough.gif)
 
-The walkthrough shows a real baseline run. Baseline, prerecorded replay and a
+The walkthrough shows an actual Ollama investigation. Baseline, prerecorded replay and a
 fresh model investigation are visibly separate modes.
 
 ## What you can do
@@ -35,6 +37,8 @@ Requires Docker with Compose v2. Baseline and replay need no model or API key.
 A new agent investigation additionally needs a reachable Ollama server/model.
 
 ```sh
+git clone https://github.com/giovannyTorres/metric-detective.git
+cd metric-detective
 cp .env.example .env
 docker compose up --build -d
 ```
@@ -48,34 +52,46 @@ Compose runs API, worker, UI and PostgreSQL with persistent database/dataset
 volumes and loopback ports. Configure `.env`; the included password is a local
 development example. `docker compose logs -f worker` follows work;
 `docker compose stop` stops services while preserving data. The
-[verification record](docs/verification.md) distinguishes executed checks from
+[verification record](docs/verification-v2.md) distinguishes executed checks from
 configuration that has not been run.
 
 ## Native quick start
 
-Requires Python 3.11–3.13, `uv` and PostgreSQL with a database/login matching
-`MD_DATABASE_URL`. Tested versions appear in the verification record. PostgreSQL
-is the real persistence backend; no SQLite substitute is used.
+Requires Python 3.11–3.13, `uv` and PostgreSQL. Configure a running database/login
+with `MD_DATABASE_URL`, or pass your own PostgreSQL binary/data directories to the
+local launcher. Tested versions appear in the verification record. PostgreSQL is
+the real persistence backend; no SQLite substitute is used.
 
 ```sh
 cp .env.example .env
 uv sync --locked --extra dev
-uv run --env-file .env metric-detective init-db
+uv run --env-file .env metric-detective local start --open
 ```
 
-Run these in three terminals from the repository root:
+The local launcher starts the API, worker and interface as supervised background
+processes. You do not need to keep three terminals open. The default native
+addresses are [the workspace on port 18501](http://127.0.0.1:18501) and
+[API docs on port 18000](http://127.0.0.1:18000/docs). These differ from Compose's
+8501/8000 ports. Use the launcher's reported addresses if you override ports.
+
+On Windows, double click **Iniciar Metric Detective.cmd** after setup. Run it
+again after a computer restart. See [local startup and recovery](docs/local-runtime.md)
+for the status/stop launchers and optional portable PostgreSQL configuration.
 
 ```sh
-uv run --env-file .env uvicorn metric_detective.api:create_app --factory --host 127.0.0.1 --port 8000
+uv run metric-detective local status
+uv run metric-detective local stop
 ```
 
-```sh
-uv run --env-file .env metric-detective worker
-```
+The command's `--help` documents `--postgres-bin`, `--postgres-data` and
+`--postgres-port` for a local PostgreSQL runtime. The launcher does not install a
+database system or contract a service. Keep your configured database available
+when starting new work.
 
-```sh
-uv run --env-file .env streamlit run src/metric_detective/ui.py --server.port 8501
-```
+The UI's **Estado del sistema** page reports API/database, worker and model
+availability. If the API is stopped, the workspace shows startup instructions and
+can still open the bundled replay offline. Offline replay displays saved results
+and never runs the model or creates a new investigation.
 
 The API initializes synthetic demonstrations. To regenerate the included data:
 `uv run metric-detective generate --output data --seed 17`.
@@ -161,8 +177,8 @@ uv run --extra dev pytest -q
 CI uses explicitly named deterministic provider doubles without model credentials.
 PostgreSQL integration/interruption tests require `MD_TEST_DATABASE_URL` for a
 separate expendable test database. Live evaluation is separate. Read the
-[measured evaluation and commands](docs/evaluation.md) and
-[actual verification record](docs/verification.md).
+[measured evaluation and commands](docs/evaluation-v2.md) and
+[actual verification record](docs/verification-v2.md).
 
 Baseline and agent use the same tools/data. Metrics cover numerical accuracy,
 segment coverage, unsupported claims, correct abstention, calls, latency and

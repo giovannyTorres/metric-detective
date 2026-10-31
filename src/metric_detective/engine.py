@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import io
 import json
 import re
 from collections import Counter
@@ -48,11 +49,21 @@ def ratio(numerator: Decimal | int, denominator: Decimal | int) -> str | None:
         return decimal_string(Decimal(numerator) / Decimal(denominator))
 
 
-def _read_csv(path: Path, expected: list[str], label: str) -> list[dict[str, str]]:
-    if path.stat().st_size > MAX_BYTES:
-        raise DataValidationError(f"{label}: file exceeds 20 MiB")
+def _read_snapshot(path: Path, label: str) -> bytes:
+    """Read once with a hard byte bound; parsing and hashes share these bytes."""
     try:
-        with path.open("r", encoding="utf-8-sig", newline="") as handle:
+        with path.open("rb") as handle:
+            data = handle.read(MAX_BYTES + 1)
+    except OSError as exc:
+        raise DataValidationError(f"{label}: input file is unavailable") from exc
+    if len(data) > MAX_BYTES:
+        raise DataValidationError(f"{label}: file exceeds 20 MiB")
+    return data
+
+
+def _read_csv(data: bytes, expected: list[str], label: str) -> list[dict[str, str]]:
+    try:
+        with io.StringIO(data.decode("utf-8-sig"), newline="") as handle:
             reader = csv.DictReader(handle, strict=True)
             fields = reader.fieldnames or []
             if len(fields) != len(set(fields)) or set(fields) != set(expected):
@@ -109,13 +120,21 @@ class AnalysisEngine:
         self.config = request.config
         self.orders_path = Path(orders_path)
         self.loads_path = Path(loads_path) if loads_path is not None else None
-        self._records = self._validate_orders()
-        self._loads = self._validate_loads()
+        orders_snapshot = _read_snapshot(self.orders_path, "orders")
+        loads_snapshot = (
+            _read_snapshot(self.loads_path, "loads") if self.loads_path is not None else None
+        )
+        self._records = self._validate_orders(orders_snapshot)
+        self._loads = self._validate_loads(loads_snapshot)
+        self._orders_sha256 = hashlib.sha256(orders_snapshot).hexdigest()
+        self._loads_sha256 = (
+            hashlib.sha256(loads_snapshot).hexdigest() if loads_snapshot is not None else None
+        )
         digest = hashlib.sha256()
         digest.update(ENGINE_VERSION.encode())
-        digest.update(self.orders_path.read_bytes())
+        digest.update(orders_snapshot)
         digest.update(b"\x00loads\x00")
-        digest.update(self.loads_path.read_bytes() if self.loads_path is not None else b"ABSENT")
+        digest.update(loads_snapshot if loads_snapshot is not None else b"ABSENT")
         digest.update(self.config.model_dump_json().encode())
         self.fingerprint = digest.hexdigest()
         self.connection = duckdb.connect(":memory:", config={"threads": 1})
@@ -140,8 +159,8 @@ class AnalysisEngine:
     def __exit__(self, *_: Any) -> None:
         self.close()
 
-    def _validate_orders(self) -> list[tuple[Any, ...]]:
-        rows = _read_csv(self.orders_path, self.config.source_columns(), "orders")
+    def _validate_orders(self, snapshot: bytes) -> list[tuple[Any, ...]]:
+        rows = _read_csv(snapshot, self.config.source_columns(), "orders")
         result = []
         zone = ZoneInfo(self.config.timezone)
         for number, row in enumerate(rows, 2):
@@ -186,10 +205,10 @@ class AnalysisEngine:
                 ) from exc
         return result
 
-    def _validate_loads(self) -> list[tuple[date, str, str]] | None:
-        if self.loads_path is None:
+    def _validate_loads(self, snapshot: bytes | None) -> list[tuple[date, str, str]] | None:
+        if snapshot is None:
             return None
-        rows = _read_csv(self.loads_path, ["date", "source", "status"], "loads")
+        rows = _read_csv(snapshot, ["date", "source", "status"], "loads")
         result = []
         for number, row in enumerate(rows, 2):
             try:
@@ -377,10 +396,8 @@ class AnalysisEngine:
                     "complete_load_grid",
                 ],
                 "formula": "Every selected local date × expected source needs one explicit complete declaration; row presence is never proof of completeness.",
-                "orders_sha256": hashlib.sha256(self.orders_path.read_bytes()).hexdigest(),
-                "loads_sha256": hashlib.sha256(self.loads_path.read_bytes()).hexdigest()
-                if self.loads_path
-                else None,
+                "orders_sha256": self._orders_sha256,
+                "loads_sha256": self._loads_sha256,
                 "engine_version": ENGINE_VERSION,
                 "canonicalization": "docs/contract.md#canonical-table",
             },
@@ -423,9 +440,12 @@ class AnalysisEngine:
             "delta_pct": pct,
             "delta_orders": delta_orders,
             "delta_orders_pct": ratio(delta_orders * 100, result["reference"]["orders"]),
-            "relevant_change": abs(Decimal(pct)) >= Decimal(str(self.config.relevant_change_pct))
-            if pct is not None
-            else bool(delta),
+            "relevant_change": bool(delta)
+            and (
+                abs(Decimal(pct)) >= Decimal(str(self.config.relevant_change_pct))
+                if pct is not None
+                else True
+            ),
         }
         return values, sql, parameters, row_count
 

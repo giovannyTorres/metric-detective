@@ -36,6 +36,9 @@ CREATE TABLE IF NOT EXISTS md_evidence (
     job_id TEXT NOT NULL REFERENCES md_jobs(id), evidence_id TEXT NOT NULL,
     result JSONB NOT NULL, PRIMARY KEY(job_id, evidence_id)
 );
+CREATE TABLE IF NOT EXISTS md_workers (
+    id TEXT PRIMARY KEY, last_seen_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp()
+);
 """
 
 
@@ -82,6 +85,28 @@ class Store:
     def healthy(self) -> bool:
         with self.connect() as connection:
             return connection.execute("SELECT 1 AS ok").fetchone()["ok"] == 1
+
+    def touch_worker(self, worker_id: str):
+        with self.connect() as connection:
+            connection.execute(
+                "INSERT INTO md_workers(id,last_seen_at) VALUES(%s,clock_timestamp()) ON CONFLICT(id) DO UPDATE SET last_seen_at=EXCLUDED.last_seen_at",
+                (worker_id,),
+            )
+
+    def forget_worker(self, worker_id: str):
+        with self.connect() as connection:
+            connection.execute("DELETE FROM md_workers WHERE id=%s", (worker_id,))
+
+    def worker_health(self) -> dict:
+        with self.connect() as connection:
+            row = connection.execute(
+                "SELECT COUNT(*) AS active_workers,MAX(last_seen_at) AS last_seen_at FROM md_workers WHERE last_seen_at > clock_timestamp()-interval '20 seconds'"
+            ).fetchone()
+        return {
+            "status": "ok" if row["active_workers"] else "missing",
+            "active_workers": row["active_workers"],
+            "last_seen_at": row["last_seen_at"].isoformat() if row["last_seen_at"] else None,
+        }
 
     def register_dataset(self, dataset_id, orders_path, loads_path, config, name):
         with self.connect() as connection:

@@ -1,0 +1,1447 @@
+{
+  "schema_version": "1.0",
+  "investigator_version": "2.0",
+  "selection_protocol": "bounded-candidates-v2",
+  "created_at_utc": "2026-10-31T23:35:00.907748+00:00",
+  "evaluation_kind": "deterministic_test_double_smoke",
+  "provider": "scripted_test_double",
+  "model": "none",
+  "model_digest": null,
+  "config": {
+    "temperature": 0,
+    "reasoning": false,
+    "max_calls": 8,
+    "max_depth": 2,
+    "max_seconds": 180,
+    "max_tokens": 20000,
+    "max_retries": 1,
+    "output_token_cap": 64,
+    "num_ctx": 8192
+  },
+  "development_seed": 17,
+  "evaluation_seeds": [
+    303,
+    404
+  ],
+  "scenarios": [
+    "mobile_drop",
+    "ticket_drop",
+    "incomplete_loads",
+    "duplicate_reference",
+    "mixed_segments",
+    "ambiguous",
+    "no_change",
+    "empty_period",
+    "services_ticket_drop"
+  ],
+  "prompt_sha256": "021f81965fa51875f04cc5521cae391f045f114f6963f4ddd572e5bd74be7f7f",
+  "schema_template_sha256": "9f1b576c36d2d027bebb96ab6480d28c104f8530de533020afa69063239e3f81",
+  "schema_note": "Each request expands the schema enum to its actual admitted action IDs. Model choice selects the associated controlled tool and parameters.",
+  "python": "3.13.5",
+  "latency_scope": "LangGraph execution wall time; excludes CSV validation and DuckDB ingestion performed before run_investigation in this evaluator.",
+  "packages": {
+    "duckdb": "2.0.0",
+    "pydantic": "2.14.2",
+    "langgraph": "1.2.19",
+    "langchain-ollama": "1.1.0"
+  },
+  "cost": null,
+  "cost_note": "Unavailable: no verified hosted-provider prices; local hardware/energy cost not measured.",
+  "limitations": [
+    "Small synthetic holdout; seeds differ but generator families are shared with development. Not a real-world generalization benchmark.",
+    "No claim of causal identification or agent superiority; both methods share controlled analytical tools and canonical report templates.",
+    "Unsupported-claim checks validate a closed observation-template grammar, not arbitrary natural-language entailment.",
+    "Usage totals contain measured provider responses only; interrupted or transport-failed calls are marked usage_unknown.",
+    "Latency is graph execution wall time on this host and includes model inference/load; it excludes engine construction/ingestion. Hardware and caching can change it.",
+    "Abstention checks mainly measure deterministic quality/report guardrails, not calibrated LLM refusal or uncertainty.",
+    "The time budget is cooperative between ingestion/analytical nodes plus per-attempt transport timeouts. There is no preemptive hard wall deadline; a hung native query or vendor request can exceed it."
+  ],
+  "records": [
+    {
+      "seed": 303,
+      "scenario": "mobile_drop",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.044465,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 128,
+          "total": 128
+        },
+        "relevant_segment_expected": "mobile",
+        "relevant_segment_identified": true,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-303-mobile_drop-baseline.json",
+      "data_fingerprint": "d52f16a1ce6fd0824c005d918762b1bf37119ca5f9c53b02a9d4cd92391e4007"
+    },
+    {
+      "seed": 303,
+      "scenario": "mobile_drop",
+      "method": "agent",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 6,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.025797,
+        "cost": null,
+        "model": "none",
+        "provider": "scripted_test_double",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 73,
+          "total": 73
+        },
+        "relevant_segment_expected": "mobile",
+        "relevant_segment_identified": true,
+        "unsupported_claims": 0,
+        "claim_count": 13,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-303-mobile_drop-agent.json",
+      "data_fingerprint": "d52f16a1ce6fd0824c005d918762b1bf37119ca5f9c53b02a9d4cd92391e4007"
+    },
+    {
+      "seed": 303,
+      "scenario": "ticket_drop",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.034147,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 128,
+          "total": 128
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-303-ticket_drop-baseline.json",
+      "data_fingerprint": "4c116021dd2f186abb99fa3063858d4b10a473ff366749283097341b5c361643"
+    },
+    {
+      "seed": 303,
+      "scenario": "ticket_drop",
+      "method": "agent",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 5,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.033812,
+        "cost": null,
+        "model": "none",
+        "provider": "scripted_test_double",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 58,
+          "total": 58
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 10,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-303-ticket_drop-agent.json",
+      "data_fingerprint": "4c116021dd2f186abb99fa3063858d4b10a473ff366749283097341b5c361643"
+    },
+    {
+      "seed": 303,
+      "scenario": "incomplete_loads",
+      "method": "baseline",
+      "status": "blocked_data_quality",
+      "metrics": {
+        "analytic_calls": 1,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.007655,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 0,
+          "total": 0
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 1,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-303-incomplete_loads-baseline.json",
+      "data_fingerprint": "f7acbd4709acc61e8ca857449d086d62e7e94a396602992287bd47a649ea4990"
+    },
+    {
+      "seed": 303,
+      "scenario": "incomplete_loads",
+      "method": "agent",
+      "status": "blocked_data_quality",
+      "metrics": {
+        "analytic_calls": 1,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.009842,
+        "cost": null,
+        "model": "none",
+        "provider": "scripted_test_double",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 0,
+          "total": 0
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 1,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-303-incomplete_loads-agent.json",
+      "data_fingerprint": "f7acbd4709acc61e8ca857449d086d62e7e94a396602992287bd47a649ea4990"
+    },
+    {
+      "seed": 303,
+      "scenario": "duplicate_reference",
+      "method": "baseline",
+      "status": "blocked_data_quality",
+      "metrics": {
+        "analytic_calls": 1,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.009017,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 0,
+          "total": 0
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 1,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-303-duplicate_reference-baseline.json",
+      "data_fingerprint": "c975ca35cee6e9318641669914f7771dba56c1398524e3277a90f02fed04373e"
+    },
+    {
+      "seed": 303,
+      "scenario": "duplicate_reference",
+      "method": "agent",
+      "status": "blocked_data_quality",
+      "metrics": {
+        "analytic_calls": 1,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.007548,
+        "cost": null,
+        "model": "none",
+        "provider": "scripted_test_double",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 0,
+          "total": 0
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 1,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-303-duplicate_reference-agent.json",
+      "data_fingerprint": "c975ca35cee6e9318641669914f7771dba56c1398524e3277a90f02fed04373e"
+    },
+    {
+      "seed": 303,
+      "scenario": "mixed_segments",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.051733,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 168,
+          "total": 168
+        },
+        "relevant_segment_expected": "mobile",
+        "relevant_segment_identified": true,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-303-mixed_segments-baseline.json",
+      "data_fingerprint": "7601b569fe1d8e12f2c1884947979b92ce143fca96b5ee6a083dfbb6c0adc00f"
+    },
+    {
+      "seed": 303,
+      "scenario": "mixed_segments",
+      "method": "agent",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 6,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.03077,
+        "cost": null,
+        "model": "none",
+        "provider": "scripted_test_double",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 83,
+          "total": 83
+        },
+        "relevant_segment_expected": "mobile",
+        "relevant_segment_identified": true,
+        "unsupported_claims": 0,
+        "claim_count": 13,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-303-mixed_segments-agent.json",
+      "data_fingerprint": "7601b569fe1d8e12f2c1884947979b92ce143fca96b5ee6a083dfbb6c0adc00f"
+    },
+    {
+      "seed": 303,
+      "scenario": "ambiguous",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.046739,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 98,
+          "total": 98
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-303-ambiguous-baseline.json",
+      "data_fingerprint": "c4ca9ba97481219e1b214d80d438018ff280cc3ad5b9abde6f45ad00fb2fe99f"
+    },
+    {
+      "seed": 303,
+      "scenario": "ambiguous",
+      "method": "agent",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 5,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.033183,
+        "cost": null,
+        "model": "none",
+        "provider": "scripted_test_double",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 58,
+          "total": 58
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 10,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-303-ambiguous-agent.json",
+      "data_fingerprint": "c4ca9ba97481219e1b214d80d438018ff280cc3ad5b9abde6f45ad00fb2fe99f"
+    },
+    {
+      "seed": 303,
+      "scenario": "no_change",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.053185,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 128,
+          "total": 128
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 19,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-303-no_change-baseline.json",
+      "data_fingerprint": "f531d03221e853a847506f4715d8c362f5c9be0e9909bd6733d8fe60061eca69"
+    },
+    {
+      "seed": 303,
+      "scenario": "no_change",
+      "method": "agent",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 2,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.016117,
+        "cost": null,
+        "model": "none",
+        "provider": "scripted_test_double",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 9,
+          "total": 9
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 6,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-303-no_change-agent.json",
+      "data_fingerprint": "f531d03221e853a847506f4715d8c362f5c9be0e9909bd6733d8fe60061eca69"
+    },
+    {
+      "seed": 303,
+      "scenario": "empty_period",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.049239,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 128,
+          "total": 128
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-303-empty_period-baseline.json",
+      "data_fingerprint": "905d7380fc12b0b54f68f6b160d179b7dc2f3b5b25463c816126d42897eab3c6"
+    },
+    {
+      "seed": 303,
+      "scenario": "empty_period",
+      "method": "agent",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 5,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.031371,
+        "cost": null,
+        "model": "none",
+        "provider": "scripted_test_double",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 58,
+          "total": 58
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 10,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-303-empty_period-agent.json",
+      "data_fingerprint": "905d7380fc12b0b54f68f6b160d179b7dc2f3b5b25463c816126d42897eab3c6"
+    },
+    {
+      "seed": 303,
+      "scenario": "services_ticket_drop",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.053462,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 128,
+          "total": 128
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-303-services_ticket_drop-baseline.json",
+      "data_fingerprint": "e13d058416d3f673f7a51f44bcc067b45f0e2414351931749d828034f7ebba5a"
+    },
+    {
+      "seed": 303,
+      "scenario": "services_ticket_drop",
+      "method": "agent",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 5,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.039679,
+        "cost": null,
+        "model": "none",
+        "provider": "scripted_test_double",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 58,
+          "total": 58
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 10,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-303-services_ticket_drop-agent.json",
+      "data_fingerprint": "e13d058416d3f673f7a51f44bcc067b45f0e2414351931749d828034f7ebba5a"
+    },
+    {
+      "seed": 404,
+      "scenario": "mobile_drop",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.055459,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 128,
+          "total": 128
+        },
+        "relevant_segment_expected": "mobile",
+        "relevant_segment_identified": true,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-404-mobile_drop-baseline.json",
+      "data_fingerprint": "188201ec8a548e81b076929bfda4303594fcdd9117d3827165eff858a87add8e"
+    },
+    {
+      "seed": 404,
+      "scenario": "mobile_drop",
+      "method": "agent",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 6,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.039129,
+        "cost": null,
+        "model": "none",
+        "provider": "scripted_test_double",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 73,
+          "total": 73
+        },
+        "relevant_segment_expected": "mobile",
+        "relevant_segment_identified": true,
+        "unsupported_claims": 0,
+        "claim_count": 13,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-404-mobile_drop-agent.json",
+      "data_fingerprint": "188201ec8a548e81b076929bfda4303594fcdd9117d3827165eff858a87add8e"
+    },
+    {
+      "seed": 404,
+      "scenario": "ticket_drop",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.057392,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 128,
+          "total": 128
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-404-ticket_drop-baseline.json",
+      "data_fingerprint": "43b4990087120a3229830b85867b15d7a8be94d4e497c0f93ed5a96d812c5c1e"
+    },
+    {
+      "seed": 404,
+      "scenario": "ticket_drop",
+      "method": "agent",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 5,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.031892,
+        "cost": null,
+        "model": "none",
+        "provider": "scripted_test_double",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 58,
+          "total": 58
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 10,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-404-ticket_drop-agent.json",
+      "data_fingerprint": "43b4990087120a3229830b85867b15d7a8be94d4e497c0f93ed5a96d812c5c1e"
+    },
+    {
+      "seed": 404,
+      "scenario": "incomplete_loads",
+      "method": "baseline",
+      "status": "blocked_data_quality",
+      "metrics": {
+        "analytic_calls": 1,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.011385,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 0,
+          "total": 0
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 1,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-404-incomplete_loads-baseline.json",
+      "data_fingerprint": "0f4e961ae5c002cc936f27f9b110f1f526d349432e3f07bc9a1c5e0216f7cf26"
+    },
+    {
+      "seed": 404,
+      "scenario": "incomplete_loads",
+      "method": "agent",
+      "status": "blocked_data_quality",
+      "metrics": {
+        "analytic_calls": 1,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.012188,
+        "cost": null,
+        "model": "none",
+        "provider": "scripted_test_double",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 0,
+          "total": 0
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 1,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-404-incomplete_loads-agent.json",
+      "data_fingerprint": "0f4e961ae5c002cc936f27f9b110f1f526d349432e3f07bc9a1c5e0216f7cf26"
+    },
+    {
+      "seed": 404,
+      "scenario": "duplicate_reference",
+      "method": "baseline",
+      "status": "blocked_data_quality",
+      "metrics": {
+        "analytic_calls": 1,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.013489,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 0,
+          "total": 0
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 1,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-404-duplicate_reference-baseline.json",
+      "data_fingerprint": "5278109dd2f05dfcbc4ceaae882cb72db2cce63346562ab73a89f98a6e55c68b"
+    },
+    {
+      "seed": 404,
+      "scenario": "duplicate_reference",
+      "method": "agent",
+      "status": "blocked_data_quality",
+      "metrics": {
+        "analytic_calls": 1,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.010364,
+        "cost": null,
+        "model": "none",
+        "provider": "scripted_test_double",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 0,
+          "total": 0
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 1,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-404-duplicate_reference-agent.json",
+      "data_fingerprint": "5278109dd2f05dfcbc4ceaae882cb72db2cce63346562ab73a89f98a6e55c68b"
+    },
+    {
+      "seed": 404,
+      "scenario": "mixed_segments",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.054447,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 168,
+          "total": 168
+        },
+        "relevant_segment_expected": "mobile",
+        "relevant_segment_identified": true,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-404-mixed_segments-baseline.json",
+      "data_fingerprint": "b3d3ae51fab20d7b574f13b40c9775b2015bccde23cd47e010bfebb4af2e59c0"
+    },
+    {
+      "seed": 404,
+      "scenario": "mixed_segments",
+      "method": "agent",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 6,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.037719,
+        "cost": null,
+        "model": "none",
+        "provider": "scripted_test_double",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 83,
+          "total": 83
+        },
+        "relevant_segment_expected": "mobile",
+        "relevant_segment_identified": true,
+        "unsupported_claims": 0,
+        "claim_count": 13,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-404-mixed_segments-agent.json",
+      "data_fingerprint": "b3d3ae51fab20d7b574f13b40c9775b2015bccde23cd47e010bfebb4af2e59c0"
+    },
+    {
+      "seed": 404,
+      "scenario": "ambiguous",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.052799,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 98,
+          "total": 98
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-404-ambiguous-baseline.json",
+      "data_fingerprint": "9b0c00970aed64fdafe642ff8db27d50d31935343c4e91bfc3f3ef465884ebb8"
+    },
+    {
+      "seed": 404,
+      "scenario": "ambiguous",
+      "method": "agent",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 5,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.035184,
+        "cost": null,
+        "model": "none",
+        "provider": "scripted_test_double",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 58,
+          "total": 58
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 10,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-404-ambiguous-agent.json",
+      "data_fingerprint": "9b0c00970aed64fdafe642ff8db27d50d31935343c4e91bfc3f3ef465884ebb8"
+    },
+    {
+      "seed": 404,
+      "scenario": "no_change",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.04837,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 128,
+          "total": 128
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 19,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-404-no_change-baseline.json",
+      "data_fingerprint": "927df3eec27d566d7ab3047eb3270a6d1dcf2325c345c8b23f30a4ee49d1afcd"
+    },
+    {
+      "seed": 404,
+      "scenario": "no_change",
+      "method": "agent",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 2,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.015052,
+        "cost": null,
+        "model": "none",
+        "provider": "scripted_test_double",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 9,
+          "total": 9
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 6,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-404-no_change-agent.json",
+      "data_fingerprint": "927df3eec27d566d7ab3047eb3270a6d1dcf2325c345c8b23f30a4ee49d1afcd"
+    },
+    {
+      "seed": 404,
+      "scenario": "empty_period",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.059037,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 128,
+          "total": 128
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-404-empty_period-baseline.json",
+      "data_fingerprint": "ea577945280b404f86d5aaf7155a992ed78ae7c606946329f6f15ec8af9f3961"
+    },
+    {
+      "seed": 404,
+      "scenario": "empty_period",
+      "method": "agent",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 5,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.037254,
+        "cost": null,
+        "model": "none",
+        "provider": "scripted_test_double",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 58,
+          "total": 58
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 10,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-404-empty_period-agent.json",
+      "data_fingerprint": "ea577945280b404f86d5aaf7155a992ed78ae7c606946329f6f15ec8af9f3961"
+    },
+    {
+      "seed": 404,
+      "scenario": "services_ticket_drop",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.052282,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 128,
+          "total": 128
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-404-services_ticket_drop-baseline.json",
+      "data_fingerprint": "609357ec8a7de817666b1d7136b3c0b6c2bf98452645c74cb1e11e8e36352ce6"
+    },
+    {
+      "seed": 404,
+      "scenario": "services_ticket_drop",
+      "method": "agent",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 5,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.030597,
+        "cost": null,
+        "model": "none",
+        "provider": "scripted_test_double",
+        "usage_unknown": false,
+        "rejected_selections": 0,
+        "investigator_version": "2.0",
+        "selection_protocol": "bounded-candidates-v2",
+        "max_prompt_bytes": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 58,
+          "total": 58
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 10,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-404-services_ticket_drop-agent.json",
+      "data_fingerprint": "609357ec8a7de817666b1d7136b3c0b6c2bf98452645c74cb1e11e8e36352ce6"
+    }
+  ],
+  "summary": {
+    "baseline": {
+      "runs": 18,
+      "status_counts": {
+        "completed": 14,
+        "partial": 0,
+        "blocked_data_quality": 4,
+        "failed": 0
+      },
+      "numeric_correct": 1812,
+      "numeric_total": 1812,
+      "numeric_accuracy": 1.0,
+      "relevant_segments_identified": 4,
+      "relevant_segments_total": 4,
+      "unsupported_claims": 0,
+      "claim_count": 258,
+      "abstention_correct": 8,
+      "abstention_total": 8,
+      "mean_analytic_calls": 6.444444444444445,
+      "mean_latency_seconds": 0.04190566666666667,
+      "median_latency_seconds": 0.050486,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "llm_calls": 0,
+      "usage_unknown_runs": 0,
+      "cost": null
+    },
+    "agent": {
+      "runs": 18,
+      "status_counts": {
+        "completed": 14,
+        "partial": 0,
+        "blocked_data_quality": 4,
+        "failed": 0
+      },
+      "numeric_correct": 794,
+      "numeric_total": 794,
+      "numeric_accuracy": 1.0,
+      "relevant_segments_identified": 4,
+      "relevant_segments_total": 4,
+      "unsupported_claims": 0,
+      "claim_count": 148,
+      "abstention_correct": 8,
+      "abstention_total": 8,
+      "mean_analytic_calls": 4,
+      "mean_latency_seconds": 0.026527666666666668,
+      "median_latency_seconds": 0.0310705,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "llm_calls": 0,
+      "usage_unknown_runs": 0,
+      "cost": null
+    }
+  }
+}

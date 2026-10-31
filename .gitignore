@@ -9,6 +9,8 @@ __pycache__/
 .coverage
 htmlcov/
 runtime/
+work/
+test-results*.xml
 *.log
 *.egg-info/
 dist/

@@ -16,8 +16,14 @@ from typing import Any, TypedDict
 from langgraph.graph import END, START, StateGraph
 
 from .contracts import InvestigationRequest
-from .provider import DecisionProvider, OllamaProvider, ProviderError, ToolDecision
-from .reporting import build_report
+from .provider import (
+    SELECTION_PROTOCOL,
+    DecisionProvider,
+    OllamaProvider,
+    ProviderError,
+    ToolDecision,
+)
+from .reporting import analysis_coverage, build_report
 
 Checkpoint = Callable[[dict[str, Any]], None]
 
@@ -68,6 +74,9 @@ def initial_state(request: InvestigationRequest) -> InvestigationState:
             "provider": "none",
             "usage_unknown": False,
             "rejected_selections": 0,
+            "investigator_version": "2.0",
+            "selection_protocol": SELECTION_PROTOCOL,
+            "max_prompt_bytes": 0,
         },
         "errors": [],
         "status": "completed",
@@ -89,66 +98,170 @@ def _executed(state: dict[str, Any]) -> set[str]:
     }
 
 
+def _comparison(state: dict[str, Any]) -> dict[str, Any] | None:
+    return next((e for e in state["evidence"] if e["tool"] == "compare_periods"), None)
+
+
+def _coverage_complete(state: dict[str, Any]) -> bool:
+    if _comparison(state) is None:
+        return False
+    return analysis_coverage(state["evidence"])["complete"]
+
+
+def _concentration(state: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]] | None:
+    """Observed absolute-change share, not probability or causal confidence."""
+    for item in state["evidence"]:
+        if item["tool"] != "rank_segment_changes" or not item["values"].get("segments"):
+            continue
+        rows = item["values"]["segments"]
+        total = sum((abs(Decimal(r["delta_revenue"])) for r in rows), Decimal(0))
+        leading = max(rows, key=lambda row: abs(Decimal(row["delta_revenue"])))
+        if total and abs(Decimal(leading["delta_revenue"])) / total >= Decimal("0.60"):
+            return item, leading
+    return None
+
+
 def _allowed_actions(state: dict[str, Any], request: InvestigationRequest) -> list[dict[str, Any]]:
+    """A bounded frontier; the model still chooses tool AND parameter values.
+
+    Stop offering unrelated marginal rankings after one partition. A focused
+    follow-up is offered only when that partition shows concentration. The fixed
+    baseline bypasses this frontier and retains its historical fixed sequence.
+    """
+    comparison = _comparison(state)
+    if comparison is None:
+        return []
+    observed = {e["tool"] for e in state["evidence"]}
     executed = _executed(state)
-    actions: list[dict[str, Any]] = [
-        {"tool": "decompose_revenue_change"},
-        {"tool": "inspect_daily_pattern"},
-    ]
-    actions.extend(
-        {"tool": "rank_segment_changes", "dimension": d} for d in request.config.dimensions
+    ids = [comparison["id"]]
+
+    def action(tool: str, reason: str, **kwargs: Any) -> dict[str, Any]:
+        return {"tool": tool, "reason_code": reason, "evidence_ids": ids, **kwargs}
+
+    if comparison["values"].get("relevant_change") is False:
+        actions = [action("finish", "no_relevant_change")]
+        if "inspect_daily_pattern" not in observed:
+            actions.append(action("inspect_daily_pattern", "daily_pattern"))
+        return actions
+    decompositions = (
+        []
+        if "decompose_revenue_change" in observed
+        else [action("decompose_revenue_change", "ticket_change")]
     )
-    # A two-dimensional cross-check is useful only after an observed marginal
-    # concentration. Never expose high-cardinality raw orders to the provider.
-    if request.limits.max_depth >= 2:
-        ranked = [e for e in state["evidence"] if e["tool"] == "rank_segment_changes"]
-        for item in ranked:
-            dimension = item["values"].get("dimension")
-            other = next((d for d in request.config.dimensions if d != dimension), None)
-            if dimension and other:
-                actions.append({"tool": "drill_down", "dimensions": [dimension, other]})
-    return [
-        a
-        for a in actions
-        if _signature(a["tool"], {k: v for k, v in a.items() if k != "tool"}) not in executed
-    ]
+    rankings = (
+        []
+        if "rank_segment_changes" in observed
+        else [
+            action("rank_segment_changes", "segment_concentration", dimension=d)
+            for d in request.config.dimensions
+        ]
+    )
+    daily = (
+        []
+        if any(
+            e["tool"] == "inspect_daily_pattern" and not e.get("filters") for e in state["evidence"]
+        )
+        else [action("inspect_daily_pattern", "daily_pattern")]
+    )
+    # Different observations produce different first-choice hypotheses, while
+    # allowing the LLM to choose an alternative relevant tool or dimension.
+    if comparison["values"].get("delta_orders", 0):
+        for item in rankings:
+            item["reason_code"] = "volume_change"
+        actions = rankings + decompositions + daily
+    else:
+        actions = decompositions + daily + rankings
+    concentrated = _concentration(state)
+    focused_done = any(
+        e["tool"] == "drill_down" or (e["tool"] == "inspect_daily_pattern" and e.get("filters"))
+        for e in state["evidence"]
+    )
+    if concentrated and not focused_done:
+        ranked, segment = concentrated
+        dimension = ranked["values"]["dimension"]
+        focused_ids = [comparison["id"], ranked["id"]]
+        actions.append(
+            {
+                "tool": "inspect_daily_pattern",
+                "filters": {dimension: segment["segment"]},
+                "reason_code": "daily_pattern",
+                "evidence_ids": focused_ids,
+            }
+        )
+        if request.limits.max_depth >= 2:
+            others = [d for d in request.config.dimensions if d != dimension]
+            if "channel" in others:
+                others.remove("channel")
+                others.insert(0, "channel")
+            actions.extend(
+                {
+                    "tool": "drill_down",
+                    "dimensions": [dimension, other],
+                    "filters": {dimension: segment["segment"]},
+                    "reason_code": "interaction_check",
+                    "evidence_ids": focused_ids,
+                }
+                for other in others
+            )
+    if _coverage_complete(state):
+        actions.append(action("finish", "sufficient_evidence"))
+    actions.append(action("finish", "insufficient_evidence"))
+    unique = {}
+    for item in actions:
+        decision = ToolDecision.model_validate(item)
+        signature = _signature(decision.tool, decision.arguments())
+        if signature not in executed:
+            # Sufficient/insufficient finish have distinct meanings.
+            unique[signature + (decision.reason_code if decision.tool == "finish" else "")] = item
+    return list(unique.values())
 
 
 def _aggregate_context(state: dict[str, Any], request: InvestigationRequest) -> dict[str, Any]:
-    """A small aggregate packet; no dataset names, scenario labels, or order IDs."""
+    """Whitelisted compact summaries; exact full evidence stays in the report."""
     aggregates = []
     for item in state["evidence"]:
-        values = copy.deepcopy(item["values"])
-        for key in (
-            "exact_rational",
-            "rounding_policy",
-            "method",
-            "reference_ticket_for_decomposition",
-            "comparison_ticket_for_decomposition",
-        ):
-            values.pop(key, None)
-        if "segments" in values:
+        raw = item["values"]
+        values: dict[str, Any] = {}
+        if item["tool"] == "check_data_quality":
+            values = {key: raw[key] for key in ("status", "completeness_verified", "issues")}
+        if item["tool"] == "compare_periods":
+            values = {
+                period: {
+                    "revenue": raw[period]["revenue"],
+                    "orders": raw[period]["orders"],
+                    "aov": None
+                    if raw[period]["aov"] is None
+                    else format(Decimal(raw[period]["aov"]), ".2f"),
+                }
+                for period in ("reference", "comparison")
+            }
+            values.update(
+                {key: raw[key] for key in ("delta_revenue", "delta_orders", "relevant_change")}
+            )
+            values["delta_pct"] = (
+                None if raw["delta_pct"] is None else format(Decimal(raw["delta_pct"]), ".2f")
+            )
+        if item["tool"] == "decompose_revenue_change":
+            values = {
+                key: raw[key] for key in ("volume_effect", "ticket_effect", "zero_policy_applied")
+            }
+        if "segments" in raw:
+            values["dimensions"] = raw["dimensions"]
             values["segments"] = [
                 {
-                    k: row[k]
-                    for k in (
-                        "segment",
-                        "delta_revenue",
-                        "reference_orders",
-                        "comparison_orders",
-                        "contribution_pct",
-                    )
-                    if k in row
+                    "segment": row["segment"],
+                    "delta_revenue": row["delta_revenue"],
+                    "delta_orders": row["comparison_orders"] - row["reference_orders"],
                 }
                 for row in sorted(
-                    values["segments"],
+                    raw["segments"],
                     key=lambda row: abs(Decimal(str(row["delta_revenue"]))),
                     reverse=True,
-                )[:4]
+                )[:3]
             ]
-            values["segments_truncated_for_prompt"] = len(item["values"]["segments"]) > 4
-        if "days" in values:
-            rows = values.pop("days")
+            values["total_segments"] = len(raw["segments"])
+        if "days" in raw:
+            rows = raw["days"]
             by_day: dict[int, dict[str, Any]] = {}
             for row in rows:
                 by_day.setdefault(row["day_index"], {})[row["period"]] = row
@@ -166,7 +279,7 @@ def _aggregate_context(state: dict[str, Any], request: InvestigationRequest) -> 
                 ],
                 key=lambda row: abs(Decimal(row["delta_revenue"])),
                 reverse=True,
-            )[:3]
+            )[:2]
         aggregates.append(
             {
                 "id": item["id"],
@@ -184,11 +297,10 @@ def _aggregate_context(state: dict[str, Any], request: InvestigationRequest) -> 
         "relevant_change_pct": request.config.relevant_change_pct,
         "remaining_analytical_calls": request.limits.max_calls - state["metrics"]["analytic_calls"],
         "evidence": aggregates,
-        "executed": [
-            {"tool": d["tool"], "args": d.get("args", {})}
-            for d in state["decisions"]
-            if d.get("executed")
-        ],
+        "coverage_complete": _coverage_complete(state),
+        "primary_signal": "volume_changed"
+        if (_comparison(state) or {}).get("values", {}).get("delta_orders", 0)
+        else "orders_stable_inspect_ticket",
         "allowed_actions": _allowed_actions(state, request),
         "required_before_sufficient_finish": [
             "decompose_revenue_change",
@@ -209,7 +321,7 @@ def _validate_selection(
     if any(key not in allowed for key in decision.filters):
         raise ValueError("invalid_dimension")
     for value in decision.filters.values():
-        if len(value) > 128:
+        if len(value) > 200:
             raise ValueError("invalid_filter")
     if decision.tool == "rank_segment_changes" and decision.dimension not in allowed:
         raise ValueError("invalid_dimension")
@@ -252,6 +364,15 @@ def _validate_selection(
                 "rank_segment_changes",
             }.issubset(tools):
                 raise ValueError("missing_required_analysis_before_finish")
+    candidates = _allowed_actions(state, request)
+    selected = _signature(decision.tool, arguments)
+    if not any(
+        _signature(candidate["tool"], ToolDecision.model_validate(candidate).arguments())
+        == selected
+        and (decision.tool != "finish" or candidate["reason_code"] == decision.reason_code)
+        for candidate in candidates
+    ):
+        raise ValueError("selection_not_admissible_for_observed_evidence")
 
 
 def _decision_record(decision: ToolDecision, *, executed: bool = False) -> dict[str, Any]:
@@ -343,6 +464,21 @@ def build_graph(
             if request.mode == "baseline" and len(_executed(state)) >= len(baseline_sequence):
                 state["phase"] = "finalize"
                 return state
+            if request.mode == "agent" and _coverage_complete(state):
+                decision = ToolDecision(
+                    tool="finish",
+                    reason_code="sufficient_evidence",
+                    evidence_ids=[_comparison(state)["id"]],
+                )
+                record = _decision_record(decision)
+                record["source"] = "deterministic_budget_guard"
+                record["summary"] = (
+                    "Las comprobaciones requeridas están completas; se cierra al alcanzar el límite de llamadas analíticas."
+                )
+                state["decisions"].append(record)
+                state["metrics"]["termination_reason"] = "required_evidence_complete_at_call_limit"
+                state["phase"] = "finalize"
+                return state
             return partial(state, "analytical_call_limit")
         if request.mode == "baseline":
             selected = next(
@@ -391,6 +527,9 @@ def build_graph(
                     state["metrics"]["llm_calls"] += selection.calls
                     state["metrics"]["input_tokens"] += selection.input_tokens
                     state["metrics"]["output_tokens"] += selection.output_tokens
+                    state["metrics"]["max_prompt_bytes"] = max(
+                        state["metrics"].get("max_prompt_bytes", 0), selection.prompt_bytes
+                    )
                     decision = selection.decision
                     _validate_selection(decision, state, request)
                     break
@@ -423,6 +562,13 @@ def build_graph(
                         return partial(state, f"invalid_tool_selection:{previous_error}")
             state["provider_inflight"] = False
         record = _decision_record(decision)
+        record["source"] = (
+            "llm_action_choice"
+            if request.mode == "agent" and provider and provider.name == "ollama"
+            else (
+                "deterministic_baseline" if request.mode == "baseline" else "explicit_test_double"
+            )
+        )
         state["decisions"].append(record)
         state["selection"] = decision.model_dump(mode="json")
         if decision.tool == "finish":

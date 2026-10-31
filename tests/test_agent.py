@@ -7,7 +7,12 @@ from pathlib import Path
 
 import pytest
 
-from metric_detective.agent import _aggregate_context, initial_state, run_investigation
+from metric_detective.agent import (
+    _aggregate_context,
+    _allowed_actions,
+    initial_state,
+    run_investigation,
+)
 from metric_detective.contracts import InvestigationRequest
 from metric_detective.engine import AnalysisEngine
 from metric_detective.provider import ProviderError, ScriptedProvider
@@ -300,6 +305,100 @@ def test_checkpoint_fingerprint_cannot_be_reused_with_different_data(tmp_path):
     state["data_fingerprint"] = "changed"
     with pytest.raises(ValueError, match="checkpoint_dataset_mismatch"):
         run_investigation(engine, request, ScriptedProvider(), resume_state=state)
+
+
+def test_completed_required_scope_at_call_cap_is_not_falsely_partial(tmp_path):
+    engine, request = make_engine(tmp_path, limits={"max_calls": 5})
+    provider = ScriptedProvider(
+        [
+            {"tool": "rank_segment_changes", "dimension": "device", "reason_code": "volume_change"},
+            {"tool": "decompose_revenue_change", "reason_code": "ticket_change"},
+            {"tool": "inspect_daily_pattern", "reason_code": "daily_pattern"},
+        ]
+    )
+    report = run_investigation(engine, request, provider)
+    assert report["status"] == "completed"
+    assert report["metrics"]["analytic_calls"] == 5
+    assert report["metrics"]["termination_reason"] == "required_evidence_complete_at_call_limit"
+    assert report["decisions"][-1]["source"] == "deterministic_budget_guard"
+    assert report["errors"] == []
+
+
+def test_frontier_priorities_follow_observed_change_with_real_alternatives(tmp_path):
+    priorities = []
+    for scenario in ("mobile_drop", "ticket_drop"):
+        engine, request = make_engine(tmp_path, scenario)
+        state = initial_state(request)
+        state["evidence"] = [
+            engine.run(tool).model_dump(mode="json")
+            for tool in ("check_data_quality", "compare_periods")
+        ]
+        actions = _allowed_actions(state, request)
+        priorities.append(actions[0]["tool"])
+        assert {
+            "decompose_revenue_change",
+            "rank_segment_changes",
+            "inspect_daily_pattern",
+        }.issubset({a["tool"] for a in actions})
+        assert {a["dimension"] for a in actions if a["tool"] == "rank_segment_changes"} == {
+            "device",
+            "channel",
+            "country",
+        }
+    assert priorities == ["rank_segment_changes", "decompose_revenue_change"]
+
+
+def test_concentrated_segment_offers_focused_parameters_not_redundant_marginals(tmp_path):
+    engine, request = make_engine(tmp_path)
+    state = initial_state(request)
+    state["evidence"] = [
+        engine.run(tool, args).model_dump(mode="json")
+        for tool, args in (
+            ("check_data_quality", {}),
+            ("compare_periods", {}),
+            ("rank_segment_changes", {"dimension": "device"}),
+        )
+    ]
+    actions = _allowed_actions(state, request)
+    assert not any(a["tool"] == "rank_segment_changes" for a in actions)
+    assert any(
+        a["tool"] == "inspect_daily_pattern" and a.get("filters") == {"device": "mobile"}
+        for a in actions
+    )
+    assert any(
+        a["tool"] == "drill_down"
+        and a["dimensions"] == ["device", "channel"]
+        and a["filters"] == {"device": "mobile"}
+        for a in actions
+    )
+    packet = json.dumps(_aggregate_context(state, request))
+    assert len(packet.encode()) < 5000
+    assert "exact_rational" not in packet
+
+
+def test_second_unrelated_marginal_is_rejected_then_investigation_recovers(tmp_path):
+    engine, request = make_engine(tmp_path)
+    report = run_investigation(
+        engine,
+        request,
+        ScriptedProvider(
+            [
+                {
+                    "tool": "rank_segment_changes",
+                    "dimension": "device",
+                    "reason_code": "volume_change",
+                },
+                {
+                    "tool": "rank_segment_changes",
+                    "dimension": "channel",
+                    "reason_code": "segment_concentration",
+                },
+            ]
+        ),
+    )
+    assert report["status"] == "completed"
+    assert report["metrics"]["rejected_selections"] == 1
+    assert sum(e["tool"] == "rank_segment_changes" for e in report["evidence"]) == 1
 
 
 def test_resume_does_not_mix_models_in_one_investigation(tmp_path):

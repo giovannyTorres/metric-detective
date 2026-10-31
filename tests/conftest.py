@@ -21,7 +21,7 @@ def pg_store(tmp_path):
     store = Store(settings)
     store.initialize()
     with store.connect() as connection:
-        connection.execute("TRUNCATE md_evidence, md_jobs, md_datasets CASCADE")
+        connection.execute("TRUNCATE md_evidence, md_jobs, md_datasets, md_workers CASCADE")
     yield store
 
 

@@ -5,11 +5,18 @@ is at [localhost:8000/docs](http://localhost:8000/docs).
 
 ```sh
 curl http://localhost:8000/health
+curl http://localhost:8000/health/details
 curl http://localhost:8000/scenarios
 curl -X POST http://localhost:8000/investigations \
   -H "Content-Type: application/json" \
   --data-binary @examples/request.json
 ```
+
+These examples use Compose's API port 8000. The supervised native launcher uses
+18000 by default. `GET /health/details` reports database, worker heartbeat and
+configured Ollama/model availability. A reachable API does not alone establish
+that a worker or model is ready. The UI shows these states separately; baseline
+investigations do not need the model.
 
 `POST /investigations` returns HTTP 202 with `id` and queued status. It does not
 wait for the model. Replace `JOB_ID` below with the returned ID:
