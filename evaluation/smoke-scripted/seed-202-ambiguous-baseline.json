@@ -1,0 +1,1203 @@
+{
+  "schema_version": "1.0",
+  "status": "completed",
+  "mode": "baseline",
+  "request": {
+    "dataset_id": "evaluation_dataset",
+    "reference_start": "2026-01-05",
+    "comparison_start": "2026-01-12",
+    "config": {
+      "name": "Ecommerce revenue",
+      "id_column": "order_id",
+      "timestamp_column": "paid_at",
+      "status_column": "status",
+      "amount_column": "amount",
+      "currency_column": "currency",
+      "dimensions": {
+        "device": "device",
+        "channel": "channel",
+        "country": "country"
+      },
+      "included_statuses": [
+        "paid"
+      ],
+      "timezone": "America/Mexico_City",
+      "currency": "MXN",
+      "expected_sources": [
+        "orders"
+      ],
+      "relevant_change_pct": 1.0
+    },
+    "mode": "baseline",
+    "limits": {
+      "max_calls": 8,
+      "max_depth": 2,
+      "max_seconds": 180.0,
+      "max_tokens": 20000,
+      "max_retries": 1
+    }
+  },
+  "data_fingerprint": "de5ce90ae852ab509d25e133d766f162d491275c732d5fcee2857743607d11aa",
+  "findings": [
+    {
+      "id": "ev_373785d98190adabb921:reference.revenue",
+      "kind": "observed_revenue",
+      "text": "Ingresos de referencia: 25053.95 MXN.",
+      "evidence_id": "ev_373785d98190adabb921",
+      "metric": "revenue",
+      "path": "reference.revenue",
+      "value": "25053.95",
+      "unit": "MXN",
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      }
+    },
+    {
+      "id": "ev_373785d98190adabb921:comparison.revenue",
+      "kind": "observed_revenue",
+      "text": "Ingresos de comparación: 14148.83 MXN.",
+      "evidence_id": "ev_373785d98190adabb921",
+      "metric": "revenue",
+      "path": "comparison.revenue",
+      "value": "14148.83",
+      "unit": "MXN",
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      }
+    },
+    {
+      "id": "ev_373785d98190adabb921:delta_revenue",
+      "kind": "observed_change",
+      "text": "Cambio observado en ingresos: -10905.12 MXN.",
+      "evidence_id": "ev_373785d98190adabb921",
+      "metric": "delta_revenue",
+      "path": "delta_revenue",
+      "value": "-10905.12",
+      "unit": "MXN",
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      }
+    },
+    {
+      "id": "ev_373785d98190adabb921:delta_pct",
+      "kind": "observed_change_pct",
+      "text": "Variación relativa frente a la referencia: -43.53 %.",
+      "evidence_id": "ev_373785d98190adabb921",
+      "metric": "delta_pct",
+      "path": "delta_pct",
+      "value": "-43.526549705735023818599462360226630930",
+      "unit": "%",
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      }
+    },
+    {
+      "id": "ev_373785d98190adabb921:delta_orders",
+      "kind": "observed_orders",
+      "text": "Cambio observado en pedidos pagados: -63 pedidos.",
+      "evidence_id": "ev_373785d98190adabb921",
+      "metric": "delta_orders",
+      "path": "delta_orders",
+      "value": -63,
+      "unit": "orders",
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      }
+    },
+    {
+      "id": "ev_4b9d5d1ec840043f124f:volume_effect",
+      "kind": "arithmetic_contribution",
+      "text": "Contribución aritmética de volumen: -5489.88 MXN; no demuestra causalidad.",
+      "evidence_id": "ev_4b9d5d1ec840043f124f",
+      "metric": "volume_effect",
+      "path": "volume_effect",
+      "value": "-5489.88",
+      "unit": "MXN",
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      }
+    },
+    {
+      "id": "ev_4b9d5d1ec840043f124f:ticket_effect",
+      "kind": "arithmetic_contribution",
+      "text": "Contribución aritmética de ticket promedio: -5415.24 MXN; no demuestra causalidad.",
+      "evidence_id": "ev_4b9d5d1ec840043f124f",
+      "metric": "ticket_effect",
+      "path": "ticket_effect",
+      "value": "-5415.24",
+      "unit": "MXN",
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      }
+    },
+    {
+      "id": "ev_3025ee61d42a9506884a:segments.0.delta_revenue",
+      "kind": "segment_change",
+      "text": "En la partición device, el segmento mobile presenta un cambio de -6022.85 MXN.",
+      "evidence_id": "ev_3025ee61d42a9506884a",
+      "metric": "delta_revenue",
+      "path": "segments.0.delta_revenue",
+      "value": "-6022.85",
+      "unit": "MXN",
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      }
+    },
+    {
+      "id": "ev_3025ee61d42a9506884a:segments.1.delta_revenue",
+      "kind": "segment_change",
+      "text": "En la partición device, el segmento desktop presenta un cambio de -3686.58 MXN.",
+      "evidence_id": "ev_3025ee61d42a9506884a",
+      "metric": "delta_revenue",
+      "path": "segments.1.delta_revenue",
+      "value": "-3686.58",
+      "unit": "MXN",
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      }
+    },
+    {
+      "id": "ev_3025ee61d42a9506884a:segments.2.delta_revenue",
+      "kind": "segment_change",
+      "text": "En la partición device, el segmento tablet presenta un cambio de -1195.69 MXN.",
+      "evidence_id": "ev_3025ee61d42a9506884a",
+      "metric": "delta_revenue",
+      "path": "segments.2.delta_revenue",
+      "value": "-1195.69",
+      "unit": "MXN",
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      }
+    },
+    {
+      "id": "ev_ada502f63896c668b664:segments.0.delta_revenue",
+      "kind": "segment_change",
+      "text": "En la partición channel, el segmento paid presenta un cambio de -6022.85 MXN.",
+      "evidence_id": "ev_ada502f63896c668b664",
+      "metric": "delta_revenue",
+      "path": "segments.0.delta_revenue",
+      "value": "-6022.85",
+      "unit": "MXN",
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      }
+    },
+    {
+      "id": "ev_ada502f63896c668b664:segments.1.delta_revenue",
+      "kind": "segment_change",
+      "text": "En la partición channel, el segmento organic presenta un cambio de -3686.58 MXN.",
+      "evidence_id": "ev_ada502f63896c668b664",
+      "metric": "delta_revenue",
+      "path": "segments.1.delta_revenue",
+      "value": "-3686.58",
+      "unit": "MXN",
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      }
+    },
+    {
+      "id": "ev_ada502f63896c668b664:segments.2.delta_revenue",
+      "kind": "segment_change",
+      "text": "En la partición channel, el segmento referral presenta un cambio de -1195.69 MXN.",
+      "evidence_id": "ev_ada502f63896c668b664",
+      "metric": "delta_revenue",
+      "path": "segments.2.delta_revenue",
+      "value": "-1195.69",
+      "unit": "MXN",
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      }
+    },
+    {
+      "id": "ev_384ae14dc8c1302195b5:segments.0.delta_revenue",
+      "kind": "segment_change",
+      "text": "En la partición country, el segmento MX presenta un cambio de -5843.50 MXN.",
+      "evidence_id": "ev_384ae14dc8c1302195b5",
+      "metric": "delta_revenue",
+      "path": "segments.0.delta_revenue",
+      "value": "-5843.50",
+      "unit": "MXN",
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      }
+    },
+    {
+      "id": "ev_384ae14dc8c1302195b5:segments.1.delta_revenue",
+      "kind": "segment_change",
+      "text": "En la partición country, el segmento US presenta un cambio de -5061.62 MXN.",
+      "evidence_id": "ev_384ae14dc8c1302195b5",
+      "metric": "delta_revenue",
+      "path": "segments.1.delta_revenue",
+      "value": "-5061.62",
+      "unit": "MXN",
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      }
+    },
+    {
+      "id": "ev_b389d5e4b423f3d3c817:segments.0.delta_revenue",
+      "kind": "segment_change",
+      "text": "En la partición device, channel, el segmento {\"channel\": \"paid\", \"device\": \"mobile\"} presenta un cambio de -6022.85 MXN.",
+      "evidence_id": "ev_b389d5e4b423f3d3c817",
+      "metric": "delta_revenue",
+      "path": "segments.0.delta_revenue",
+      "value": "-6022.85",
+      "unit": "MXN",
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      }
+    },
+    {
+      "id": "ev_b389d5e4b423f3d3c817:segments.1.delta_revenue",
+      "kind": "segment_change",
+      "text": "En la partición device, channel, el segmento {\"channel\": \"organic\", \"device\": \"desktop\"} presenta un cambio de -3686.58 MXN.",
+      "evidence_id": "ev_b389d5e4b423f3d3c817",
+      "metric": "delta_revenue",
+      "path": "segments.1.delta_revenue",
+      "value": "-3686.58",
+      "unit": "MXN",
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      }
+    },
+    {
+      "id": "ev_b389d5e4b423f3d3c817:segments.2.delta_revenue",
+      "kind": "segment_change",
+      "text": "En la partición device, channel, el segmento {\"channel\": \"referral\", \"device\": \"tablet\"} presenta un cambio de -1195.69 MXN.",
+      "evidence_id": "ev_b389d5e4b423f3d3c817",
+      "metric": "delta_revenue",
+      "path": "segments.2.delta_revenue",
+      "value": "-1195.69",
+      "unit": "MXN",
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      }
+    }
+  ],
+  "hypotheses": [
+    {
+      "text": "El cambio puede ser compatible con variaciones de adquisición, conversión, precios o mezcla; la información disponible no permite distinguir esas explicaciones.",
+      "evidence_ids": [
+        "ev_373785d98190adabb921"
+      ],
+      "next_check": "Contrastar sesiones, conversión, precios, promociones e incidencias por los mismos periodos y segmentos; una atribución causal requiere evidencia adicional."
+    }
+  ],
+  "missing_data": [
+    "Los pedidos y las cargas no incluyen sesiones, conversión, precios unitarios ni intervenciones para identificar causas.",
+    "Las contribuciones de particiones diferentes se superponen: no se suman entre dispositivo, canal y país."
+  ],
+  "evidence": [
+    {
+      "id": "ev_4c63c3c794504c328296",
+      "tool": "check_data_quality",
+      "values": {
+        "status": "ok",
+        "issues": [],
+        "completeness_verified": true,
+        "valid_rows": 441,
+        "eligible_rows": 441,
+        "duplicate_ids": 0,
+        "missing_load_declarations": 0,
+        "incomplete_load_declarations": 0,
+        "duplicate_load_declarations": 0,
+        "rows_with_missing_dimensions": 0
+      },
+      "units": {
+        "valid_rows": "orders",
+        "eligible_rows": "orders",
+        "duplicate_ids": "orders"
+      },
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      },
+      "filters": {},
+      "row_count": 441,
+      "warnings": [],
+      "reproduction": {
+        "checks": [
+          "strict_csv_contract",
+          "unique_order_id",
+          "single_currency",
+          "complete_load_grid"
+        ],
+        "formula": "Every selected local date × expected source needs one explicit complete declaration; row presence is never proof of completeness.",
+        "orders_sha256": "62592fbbfead2389d9126b88535ec833dfb2506b9caa2ca1fcb0122102535688",
+        "loads_sha256": "84808c50859afb1686b86e0cd3d0517909472673dccbe60bc2ac154138461377",
+        "engine_version": "metric-detective-analytics-v1",
+        "canonicalization": "docs/contract.md#canonical-table"
+      },
+      "data_fingerprint": "de5ce90ae852ab509d25e133d766f162d491275c732d5fcee2857743607d11aa"
+    },
+    {
+      "id": "ev_373785d98190adabb921",
+      "tool": "compare_periods",
+      "values": {
+        "reference": {
+          "revenue": "25053.95",
+          "orders": 252,
+          "aov": "99.420436507936507936507936507936507937"
+        },
+        "comparison": {
+          "revenue": "14148.83",
+          "orders": 189,
+          "aov": "74.861534391534391534391534391534391534"
+        },
+        "delta_revenue": "-10905.12",
+        "delta_pct": "-43.526549705735023818599462360226630930",
+        "delta_orders": -63,
+        "delta_orders_pct": "-25",
+        "relevant_change": true
+      },
+      "units": {
+        "revenue": "MXN",
+        "delta_revenue": "MXN",
+        "aov": "MXN/order",
+        "orders": "orders",
+        "delta_pct": "%"
+      },
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      },
+      "filters": {},
+      "row_count": 441,
+      "warnings": [],
+      "reproduction": {
+        "sql": "SELECT CASE WHEN local_date >= ? AND local_date < ? THEN 'reference' ELSE 'comparison' END AS period, COUNT(*) AS orders, SUM(amount) AS revenue FROM orders WHERE status IN (?) AND currency = ? AND ((local_date >= ? AND local_date < ?) OR (local_date >= ? AND local_date < ?)) GROUP BY period ORDER BY period",
+        "parameters": [
+          "2026-01-05",
+          "2026-01-12",
+          "paid",
+          "MXN",
+          "2026-01-05",
+          "2026-01-12",
+          "2026-01-12",
+          "2026-01-19"
+        ],
+        "canonicalization": "docs/contract.md#canonical-table",
+        "engine_version": "metric-detective-analytics-v1"
+      },
+      "data_fingerprint": "de5ce90ae852ab509d25e133d766f162d491275c732d5fcee2857743607d11aa"
+    },
+    {
+      "id": "ev_4b9d5d1ec840043f124f",
+      "tool": "decompose_revenue_change",
+      "values": {
+        "volume_effect": "-5489.88",
+        "ticket_effect": "-5415.24",
+        "interaction": "1547.2108333333333333333333333333333333",
+        "delta_revenue": "-10905.12",
+        "reference_orders": 252,
+        "comparison_orders": 189,
+        "reference_ticket_for_decomposition": "99.420436507936507936507936507936507937",
+        "comparison_ticket_for_decomposition": "74.861534391534391534391534391534391534",
+        "zero_policy_applied": false,
+        "method": "symmetric_shapley",
+        "exact_rational": {
+          "volume_effect": {
+            "numerator": "-13175717",
+            "denominator": "2400"
+          },
+          "ticket_effect": {
+            "numerator": "-12996571",
+            "denominator": "2400"
+          },
+          "interaction": {
+            "numerator": "1856653",
+            "denominator": "1200"
+          }
+        },
+        "rounding_policy": "Exact rational values are authoritative. Volume is rounded half-even to cents; ticket receives the sub-cent balancing residual so displayed allocations reconcile exactly."
+      },
+      "units": {
+        "volume_effect": "MXN",
+        "ticket_effect": "MXN",
+        "interaction": "MXN",
+        "delta_revenue": "MXN"
+      },
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      },
+      "filters": {},
+      "row_count": 441,
+      "warnings": [],
+      "reproduction": {
+        "sql": "SELECT CASE WHEN local_date >= ? AND local_date < ? THEN 'reference' ELSE 'comparison' END AS period, COUNT(*) AS orders, SUM(amount) AS revenue FROM orders WHERE status IN (?) AND currency = ? AND ((local_date >= ? AND local_date < ?) OR (local_date >= ? AND local_date < ?)) GROUP BY period ORDER BY period",
+        "parameters": [
+          "2026-01-05",
+          "2026-01-12",
+          "paid",
+          "MXN",
+          "2026-01-05",
+          "2026-01-12",
+          "2026-01-12",
+          "2026-01-19"
+        ],
+        "canonicalization": "docs/contract.md#canonical-table",
+        "engine_version": "metric-detective-analytics-v1",
+        "formula": {
+          "interaction": "(N1-N0)*(A1-A0)",
+          "volume_effect": "(N1-N0)*A0 + interaction/2",
+          "ticket_effect": "delta_revenue-volume_effect = N0*(A1-A0)+interaction/2",
+          "reconciliation": "volume_effect + ticket_effect = R1-R0; interaction is already allocated, never add it again",
+          "zero_policy": "If one period has no orders, carry the observed ticket into that period; if both are empty use zero. This is a convention, not an observed ticket.",
+          "rounding": "exact_rational stores authoritative fractions; decimal volume rounds half-even to cents and ticket=delta_revenue-volume, preserving the exact monetary total."
+        }
+      },
+      "data_fingerprint": "de5ce90ae852ab509d25e133d766f162d491275c732d5fcee2857743607d11aa"
+    },
+    {
+      "id": "ev_3025ee61d42a9506884a",
+      "tool": "rank_segment_changes",
+      "values": {
+        "segments": [
+          {
+            "segment": "mobile",
+            "reference_revenue": "13822.25",
+            "comparison_revenue": "7799.40",
+            "delta_revenue": "-6022.85",
+            "reference_orders": 140,
+            "comparison_orders": 105,
+            "contribution_pct": "55.229561893862699355898880525844740819",
+            "delta_pct": "-43.573586065944401237135777460254300132",
+            "status": "present"
+          },
+          {
+            "segment": "desktop",
+            "reference_revenue": "8471.66",
+            "comparison_revenue": "4785.08",
+            "delta_revenue": "-3686.58",
+            "reference_orders": 84,
+            "comparison_orders": 63,
+            "contribution_pct": "33.805955367753862405915753334213653770",
+            "delta_pct": "-43.516618938909257453674958626762641560",
+            "status": "present"
+          },
+          {
+            "segment": "tablet",
+            "reference_revenue": "2760.04",
+            "comparison_revenue": "1564.35",
+            "delta_revenue": "-1195.69",
+            "reference_orders": 28,
+            "comparison_orders": 21,
+            "contribution_pct": "10.964482738383438238185366139941605411",
+            "delta_pct": "-43.321473601831857509311459254213707048",
+            "status": "present"
+          }
+        ],
+        "delta_revenue": "-10905.12",
+        "partition": [
+          "device"
+        ],
+        "dimensions": [
+          "device"
+        ],
+        "reconciles": true,
+        "dimension": "device"
+      },
+      "units": {
+        "revenue": "MXN",
+        "delta_revenue": "MXN",
+        "contribution_pct": "%",
+        "orders": "orders"
+      },
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      },
+      "filters": {},
+      "row_count": 441,
+      "warnings": [
+        "partitions_overlap_across_dimensions_do_not_add_device_channel_country_contributions"
+      ],
+      "reproduction": {
+        "sql": "SELECT \"device\", SUM(CASE WHEN local_date >= ? AND local_date < ? THEN amount ELSE 0 END) AS reference_revenue, SUM(CASE WHEN local_date >= ? AND local_date < ? THEN amount ELSE 0 END) AS comparison_revenue, COUNT(*) FILTER (WHERE local_date >= ? AND local_date < ?) AS reference_orders, COUNT(*) FILTER (WHERE local_date >= ? AND local_date < ?) AS comparison_orders FROM orders WHERE status IN (?) AND currency = ? AND ((local_date >= ? AND local_date < ?) OR (local_date >= ? AND local_date < ?)) GROUP BY \"device\"",
+        "parameters": [
+          "2026-01-05",
+          "2026-01-12",
+          "2026-01-12",
+          "2026-01-19",
+          "2026-01-05",
+          "2026-01-12",
+          "2026-01-12",
+          "2026-01-19",
+          "paid",
+          "MXN",
+          "2026-01-05",
+          "2026-01-12",
+          "2026-01-12",
+          "2026-01-19"
+        ],
+        "canonicalization": "docs/contract.md#canonical-table",
+        "engine_version": "metric-detective-analytics-v1",
+        "formula": "Within this partition only: sum(segment delta_revenue) = filtered revenue change."
+      },
+      "data_fingerprint": "de5ce90ae852ab509d25e133d766f162d491275c732d5fcee2857743607d11aa"
+    },
+    {
+      "id": "ev_ada502f63896c668b664",
+      "tool": "rank_segment_changes",
+      "values": {
+        "segments": [
+          {
+            "segment": "paid",
+            "reference_revenue": "13822.25",
+            "comparison_revenue": "7799.40",
+            "delta_revenue": "-6022.85",
+            "reference_orders": 140,
+            "comparison_orders": 105,
+            "contribution_pct": "55.229561893862699355898880525844740819",
+            "delta_pct": "-43.573586065944401237135777460254300132",
+            "status": "present"
+          },
+          {
+            "segment": "organic",
+            "reference_revenue": "8471.66",
+            "comparison_revenue": "4785.08",
+            "delta_revenue": "-3686.58",
+            "reference_orders": 84,
+            "comparison_orders": 63,
+            "contribution_pct": "33.805955367753862405915753334213653770",
+            "delta_pct": "-43.516618938909257453674958626762641560",
+            "status": "present"
+          },
+          {
+            "segment": "referral",
+            "reference_revenue": "2760.04",
+            "comparison_revenue": "1564.35",
+            "delta_revenue": "-1195.69",
+            "reference_orders": 28,
+            "comparison_orders": 21,
+            "contribution_pct": "10.964482738383438238185366139941605411",
+            "delta_pct": "-43.321473601831857509311459254213707048",
+            "status": "present"
+          }
+        ],
+        "delta_revenue": "-10905.12",
+        "partition": [
+          "channel"
+        ],
+        "dimensions": [
+          "channel"
+        ],
+        "reconciles": true,
+        "dimension": "channel"
+      },
+      "units": {
+        "revenue": "MXN",
+        "delta_revenue": "MXN",
+        "contribution_pct": "%",
+        "orders": "orders"
+      },
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      },
+      "filters": {},
+      "row_count": 441,
+      "warnings": [
+        "partitions_overlap_across_dimensions_do_not_add_device_channel_country_contributions"
+      ],
+      "reproduction": {
+        "sql": "SELECT \"channel\", SUM(CASE WHEN local_date >= ? AND local_date < ? THEN amount ELSE 0 END) AS reference_revenue, SUM(CASE WHEN local_date >= ? AND local_date < ? THEN amount ELSE 0 END) AS comparison_revenue, COUNT(*) FILTER (WHERE local_date >= ? AND local_date < ?) AS reference_orders, COUNT(*) FILTER (WHERE local_date >= ? AND local_date < ?) AS comparison_orders FROM orders WHERE status IN (?) AND currency = ? AND ((local_date >= ? AND local_date < ?) OR (local_date >= ? AND local_date < ?)) GROUP BY \"channel\"",
+        "parameters": [
+          "2026-01-05",
+          "2026-01-12",
+          "2026-01-12",
+          "2026-01-19",
+          "2026-01-05",
+          "2026-01-12",
+          "2026-01-12",
+          "2026-01-19",
+          "paid",
+          "MXN",
+          "2026-01-05",
+          "2026-01-12",
+          "2026-01-12",
+          "2026-01-19"
+        ],
+        "canonicalization": "docs/contract.md#canonical-table",
+        "engine_version": "metric-detective-analytics-v1",
+        "formula": "Within this partition only: sum(segment delta_revenue) = filtered revenue change."
+      },
+      "data_fingerprint": "de5ce90ae852ab509d25e133d766f162d491275c732d5fcee2857743607d11aa"
+    },
+    {
+      "id": "ev_384ae14dc8c1302195b5",
+      "tool": "rank_segment_changes",
+      "values": {
+        "segments": [
+          {
+            "segment": "MX",
+            "reference_revenue": "13282.06",
+            "comparison_revenue": "7438.56",
+            "delta_revenue": "-5843.50",
+            "reference_orders": 133,
+            "comparison_orders": 99,
+            "contribution_pct": "53.584921578121102748066963041213668442",
+            "delta_pct": "-43.995434443151137700025447859744648044",
+            "status": "present"
+          },
+          {
+            "segment": "US",
+            "reference_revenue": "11771.89",
+            "comparison_revenue": "6710.27",
+            "delta_revenue": "-5061.62",
+            "reference_orders": 119,
+            "comparison_orders": 90,
+            "contribution_pct": "46.415078421878897251933036958786331558",
+            "delta_pct": "-42.997513568339493488301368769161111767",
+            "status": "present"
+          }
+        ],
+        "delta_revenue": "-10905.12",
+        "partition": [
+          "country"
+        ],
+        "dimensions": [
+          "country"
+        ],
+        "reconciles": true,
+        "dimension": "country"
+      },
+      "units": {
+        "revenue": "MXN",
+        "delta_revenue": "MXN",
+        "contribution_pct": "%",
+        "orders": "orders"
+      },
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      },
+      "filters": {},
+      "row_count": 441,
+      "warnings": [
+        "partitions_overlap_across_dimensions_do_not_add_device_channel_country_contributions"
+      ],
+      "reproduction": {
+        "sql": "SELECT \"country\", SUM(CASE WHEN local_date >= ? AND local_date < ? THEN amount ELSE 0 END) AS reference_revenue, SUM(CASE WHEN local_date >= ? AND local_date < ? THEN amount ELSE 0 END) AS comparison_revenue, COUNT(*) FILTER (WHERE local_date >= ? AND local_date < ?) AS reference_orders, COUNT(*) FILTER (WHERE local_date >= ? AND local_date < ?) AS comparison_orders FROM orders WHERE status IN (?) AND currency = ? AND ((local_date >= ? AND local_date < ?) OR (local_date >= ? AND local_date < ?)) GROUP BY \"country\"",
+        "parameters": [
+          "2026-01-05",
+          "2026-01-12",
+          "2026-01-12",
+          "2026-01-19",
+          "2026-01-05",
+          "2026-01-12",
+          "2026-01-12",
+          "2026-01-19",
+          "paid",
+          "MXN",
+          "2026-01-05",
+          "2026-01-12",
+          "2026-01-12",
+          "2026-01-19"
+        ],
+        "canonicalization": "docs/contract.md#canonical-table",
+        "engine_version": "metric-detective-analytics-v1",
+        "formula": "Within this partition only: sum(segment delta_revenue) = filtered revenue change."
+      },
+      "data_fingerprint": "de5ce90ae852ab509d25e133d766f162d491275c732d5fcee2857743607d11aa"
+    },
+    {
+      "id": "ev_691c6eaa68860c4b93e0",
+      "tool": "inspect_daily_pattern",
+      "values": {
+        "days": [
+          {
+            "date": "2026-01-05",
+            "period": "reference",
+            "day_index": 0,
+            "revenue": "3589.72",
+            "orders": 36
+          },
+          {
+            "date": "2026-01-06",
+            "period": "reference",
+            "day_index": 1,
+            "revenue": "3620.78",
+            "orders": 36
+          },
+          {
+            "date": "2026-01-07",
+            "period": "reference",
+            "day_index": 2,
+            "revenue": "3581.36",
+            "orders": 36
+          },
+          {
+            "date": "2026-01-08",
+            "period": "reference",
+            "day_index": 3,
+            "revenue": "3529.70",
+            "orders": 36
+          },
+          {
+            "date": "2026-01-09",
+            "period": "reference",
+            "day_index": 4,
+            "revenue": "3570.18",
+            "orders": 36
+          },
+          {
+            "date": "2026-01-10",
+            "period": "reference",
+            "day_index": 5,
+            "revenue": "3534.40",
+            "orders": 36
+          },
+          {
+            "date": "2026-01-11",
+            "period": "reference",
+            "day_index": 6,
+            "revenue": "3627.81",
+            "orders": 36
+          },
+          {
+            "date": "2026-01-12",
+            "period": "comparison",
+            "day_index": 0,
+            "revenue": "2037.01",
+            "orders": 27
+          },
+          {
+            "date": "2026-01-13",
+            "period": "comparison",
+            "day_index": 1,
+            "revenue": "2058.52",
+            "orders": 27
+          },
+          {
+            "date": "2026-01-14",
+            "period": "comparison",
+            "day_index": 2,
+            "revenue": "2026.66",
+            "orders": 27
+          },
+          {
+            "date": "2026-01-15",
+            "period": "comparison",
+            "day_index": 3,
+            "revenue": "1985.90",
+            "orders": 27
+          },
+          {
+            "date": "2026-01-16",
+            "period": "comparison",
+            "day_index": 4,
+            "revenue": "2008.73",
+            "orders": 27
+          },
+          {
+            "date": "2026-01-17",
+            "period": "comparison",
+            "day_index": 5,
+            "revenue": "1981.62",
+            "orders": 27
+          },
+          {
+            "date": "2026-01-18",
+            "period": "comparison",
+            "day_index": 6,
+            "revenue": "2050.39",
+            "orders": 27
+          }
+        ]
+      },
+      "units": {
+        "revenue": "MXN",
+        "orders": "orders"
+      },
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      },
+      "filters": {},
+      "row_count": 441,
+      "warnings": [],
+      "reproduction": {
+        "sql": "SELECT local_date, COUNT(*) AS orders, SUM(amount) AS revenue FROM orders WHERE status IN (?) AND currency = ? AND ((local_date >= ? AND local_date < ?) OR (local_date >= ? AND local_date < ?)) GROUP BY local_date ORDER BY local_date",
+        "parameters": [
+          "paid",
+          "MXN",
+          "2026-01-05",
+          "2026-01-12",
+          "2026-01-12",
+          "2026-01-19"
+        ],
+        "canonicalization": "docs/contract.md#canonical-table",
+        "engine_version": "metric-detective-analytics-v1",
+        "fill": "Explicit 7-day date spine for each period; no orders => 0, load completeness remains separate."
+      },
+      "data_fingerprint": "de5ce90ae852ab509d25e133d766f162d491275c732d5fcee2857743607d11aa"
+    },
+    {
+      "id": "ev_b389d5e4b423f3d3c817",
+      "tool": "drill_down",
+      "values": {
+        "segments": [
+          {
+            "segment": {
+              "device": "mobile",
+              "channel": "paid"
+            },
+            "reference_revenue": "13822.25",
+            "comparison_revenue": "7799.40",
+            "delta_revenue": "-6022.85",
+            "reference_orders": 140,
+            "comparison_orders": 105,
+            "contribution_pct": "55.229561893862699355898880525844740819",
+            "delta_pct": "-43.573586065944401237135777460254300132",
+            "status": "present"
+          },
+          {
+            "segment": {
+              "device": "desktop",
+              "channel": "organic"
+            },
+            "reference_revenue": "8471.66",
+            "comparison_revenue": "4785.08",
+            "delta_revenue": "-3686.58",
+            "reference_orders": 84,
+            "comparison_orders": 63,
+            "contribution_pct": "33.805955367753862405915753334213653770",
+            "delta_pct": "-43.516618938909257453674958626762641560",
+            "status": "present"
+          },
+          {
+            "segment": {
+              "device": "tablet",
+              "channel": "referral"
+            },
+            "reference_revenue": "2760.04",
+            "comparison_revenue": "1564.35",
+            "delta_revenue": "-1195.69",
+            "reference_orders": 28,
+            "comparison_orders": 21,
+            "contribution_pct": "10.964482738383438238185366139941605411",
+            "delta_pct": "-43.321473601831857509311459254213707048",
+            "status": "present"
+          }
+        ],
+        "delta_revenue": "-10905.12",
+        "partition": [
+          "device",
+          "channel"
+        ],
+        "dimensions": [
+          "device",
+          "channel"
+        ],
+        "reconciles": true
+      },
+      "units": {
+        "revenue": "MXN",
+        "delta_revenue": "MXN",
+        "contribution_pct": "%",
+        "orders": "orders"
+      },
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      },
+      "filters": {},
+      "row_count": 441,
+      "warnings": [
+        "partitions_overlap_across_dimensions_do_not_add_device_channel_country_contributions"
+      ],
+      "reproduction": {
+        "sql": "SELECT \"device\", \"channel\", SUM(CASE WHEN local_date >= ? AND local_date < ? THEN amount ELSE 0 END) AS reference_revenue, SUM(CASE WHEN local_date >= ? AND local_date < ? THEN amount ELSE 0 END) AS comparison_revenue, COUNT(*) FILTER (WHERE local_date >= ? AND local_date < ?) AS reference_orders, COUNT(*) FILTER (WHERE local_date >= ? AND local_date < ?) AS comparison_orders FROM orders WHERE status IN (?) AND currency = ? AND ((local_date >= ? AND local_date < ?) OR (local_date >= ? AND local_date < ?)) GROUP BY \"device\", \"channel\"",
+        "parameters": [
+          "2026-01-05",
+          "2026-01-12",
+          "2026-01-12",
+          "2026-01-19",
+          "2026-01-05",
+          "2026-01-12",
+          "2026-01-12",
+          "2026-01-19",
+          "paid",
+          "MXN",
+          "2026-01-05",
+          "2026-01-12",
+          "2026-01-12",
+          "2026-01-19"
+        ],
+        "canonicalization": "docs/contract.md#canonical-table",
+        "engine_version": "metric-detective-analytics-v1",
+        "formula": "Within this partition only: sum(segment delta_revenue) = filtered revenue change."
+      },
+      "data_fingerprint": "de5ce90ae852ab509d25e133d766f162d491275c732d5fcee2857743607d11aa"
+    }
+  ],
+  "decisions": [
+    {
+      "tool": "decompose_revenue_change",
+      "args": {},
+      "reason_code": "sufficient_evidence",
+      "summary": "Terminar con los análisis disponibles y sus limitaciones explícitas.",
+      "evidence_ids": [
+        "ev_373785d98190adabb921"
+      ],
+      "executed": true
+    },
+    {
+      "tool": "rank_segment_changes",
+      "args": {
+        "dimension": "device"
+      },
+      "reason_code": "sufficient_evidence",
+      "summary": "Terminar con los análisis disponibles y sus limitaciones explícitas.",
+      "evidence_ids": [
+        "ev_4b9d5d1ec840043f124f"
+      ],
+      "executed": true
+    },
+    {
+      "tool": "rank_segment_changes",
+      "args": {
+        "dimension": "channel"
+      },
+      "reason_code": "sufficient_evidence",
+      "summary": "Terminar con los análisis disponibles y sus limitaciones explícitas.",
+      "evidence_ids": [
+        "ev_3025ee61d42a9506884a"
+      ],
+      "executed": true
+    },
+    {
+      "tool": "rank_segment_changes",
+      "args": {
+        "dimension": "country"
+      },
+      "reason_code": "sufficient_evidence",
+      "summary": "Terminar con los análisis disponibles y sus limitaciones explícitas.",
+      "evidence_ids": [
+        "ev_ada502f63896c668b664"
+      ],
+      "executed": true
+    },
+    {
+      "tool": "inspect_daily_pattern",
+      "args": {},
+      "reason_code": "sufficient_evidence",
+      "summary": "Terminar con los análisis disponibles y sus limitaciones explícitas.",
+      "evidence_ids": [
+        "ev_384ae14dc8c1302195b5"
+      ],
+      "executed": true
+    },
+    {
+      "tool": "drill_down",
+      "args": {
+        "dimensions": [
+          "device",
+          "channel"
+        ],
+        "filters": {}
+      },
+      "reason_code": "sufficient_evidence",
+      "summary": "Terminar con los análisis disponibles y sus limitaciones explícitas.",
+      "evidence_ids": [
+        "ev_691c6eaa68860c4b93e0"
+      ],
+      "executed": true
+    }
+  ],
+  "metrics": {
+    "analytic_calls": 8,
+    "llm_calls": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_seconds": 0.045066,
+    "cost": null,
+    "model": "none",
+    "provider": "deterministic_baseline",
+    "usage_unknown": false,
+    "rejected_selections": 0
+  },
+  "errors": [],
+  "limitations": [
+    "Una moneda por investigación; ingresos = suma de importes de pedidos con estados incluidos.",
+    "Las devoluciones quedan fuera del alcance; las contribuciones son aritméticas, no efectos causales.",
+    "Cada partición suma su propio cambio; no se suman contribuciones entre dispositivo y canal.",
+    "El umbral de relevancia es descriptivo y configurable; no es una prueba de significancia estadística."
+  ]
+}

@@ -1,0 +1,1362 @@
+{
+  "schema_version": "1.0",
+  "created_at_utc": "2026-10-31T06:20:09.375684+00:00",
+  "evaluation_kind": "real_llm",
+  "provider": "ollama",
+  "model": "qwen3.5:4b",
+  "model_digest": "d8b0f5e9760cd1682034f292d7ef72ec46f432149be0df7574bf2d6e92e38c04",
+  "config": {
+    "temperature": 0,
+    "reasoning": false,
+    "max_calls": 8,
+    "max_depth": 2,
+    "max_seconds": 180.0,
+    "max_tokens": 12000,
+    "max_retries": 1,
+    "output_token_cap": 384,
+    "num_ctx": 8192
+  },
+  "development_seed": 17,
+  "evaluation_seeds": [
+    101,
+    202
+  ],
+  "scenarios": [
+    "mobile_drop",
+    "ticket_drop",
+    "incomplete_loads",
+    "duplicate_reference",
+    "mixed_segments",
+    "ambiguous",
+    "no_change",
+    "empty_period",
+    "services_ticket_drop"
+  ],
+  "prompt_sha256": "a9af83657c4ac91214e99f19f0db03842aa5decda2714558dfb20d348eed9199",
+  "python": "3.13.5",
+  "packages": {
+    "duckdb": "2.0.0",
+    "pydantic": "2.14.2",
+    "langgraph": "1.2.19",
+    "langchain-ollama": "1.1.0"
+  },
+  "cost": null,
+  "cost_note": "Unavailable: no verified hosted-provider prices; local hardware/energy cost not measured.",
+  "limitations": [
+    "Small synthetic holdout; seeds differ but generator families are shared with development. Not a real-world generalization benchmark.",
+    "No claim of causal identification or agent superiority; both methods share controlled analytical tools and canonical report templates.",
+    "Unsupported-claim checks validate a closed observation-template grammar, not arbitrary natural-language entailment.",
+    "Numeric accuracy is conditional on returned evidence; omitted analyses in partial runs do not count as incorrect, so denominators differ.",
+    "Segment identification covers only the mobile_drop and mixed_segments leading-device targets across two seeds.",
+    "Abstention checks mainly measure deterministic quality/report guardrails, not calibrated LLM refusal or uncertainty.",
+    "Usage totals contain measured provider responses only; interrupted or transport-failed calls are marked usage_unknown.",
+    "Latency is graph execution wall time and includes model inference/load; it excludes engine construction/ingestion. Hardware and caching can change it.",
+    "Time limits are cooperative between ingestion/analytical nodes and use per-attempt transport timeouts. There is no preemptive hard wall deadline."
+  ],
+  "records": [
+    {
+      "seed": 101,
+      "scenario": "mobile_drop",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.053186,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 128,
+          "total": 128
+        },
+        "relevant_segment_expected": "mobile",
+        "relevant_segment_identified": true,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-101-mobile_drop-baseline.json",
+      "data_fingerprint": "199d42aca27bab4bb30ca56c848ba683a91920542319fd45cd9f80988d8b27c5"
+    },
+    {
+      "seed": 101,
+      "scenario": "mobile_drop",
+      "method": "agent",
+      "status": "partial",
+      "metrics": {
+        "analytic_calls": 7,
+        "llm_calls": 5,
+        "input_tokens": 5539,
+        "output_tokens": 295,
+        "latency_seconds": 13.096271,
+        "cost": null,
+        "model": "qwen3.5:4b",
+        "provider": "ollama",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [
+        "token_budget_exhausted"
+      ],
+      "score": {
+        "numeric": {
+          "correct": 83,
+          "total": 83
+        },
+        "relevant_segment_expected": "mobile",
+        "relevant_segment_identified": true,
+        "unsupported_claims": 0,
+        "claim_count": 15,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-101-mobile_drop-agent.json",
+      "data_fingerprint": "199d42aca27bab4bb30ca56c848ba683a91920542319fd45cd9f80988d8b27c5"
+    },
+    {
+      "seed": 101,
+      "scenario": "ticket_drop",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.048062,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 128,
+          "total": 128
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-101-ticket_drop-baseline.json",
+      "data_fingerprint": "43090f51a6dcded4e784bf0fbe4230aa267cc4a42154de2de9bdcbca0d385930"
+    },
+    {
+      "seed": 101,
+      "scenario": "ticket_drop",
+      "method": "agent",
+      "status": "partial",
+      "metrics": {
+        "analytic_calls": 7,
+        "llm_calls": 6,
+        "input_tokens": 6345,
+        "output_tokens": 357,
+        "latency_seconds": 14.705984,
+        "cost": null,
+        "model": "qwen3.5:4b",
+        "provider": "ollama",
+        "usage_unknown": false,
+        "rejected_selections": 1
+      },
+      "errors": [
+        "token_budget_exhausted"
+      ],
+      "score": {
+        "numeric": {
+          "correct": 83,
+          "total": 83
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 15,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-101-ticket_drop-agent.json",
+      "data_fingerprint": "43090f51a6dcded4e784bf0fbe4230aa267cc4a42154de2de9bdcbca0d385930"
+    },
+    {
+      "seed": 101,
+      "scenario": "incomplete_loads",
+      "method": "baseline",
+      "status": "blocked_data_quality",
+      "metrics": {
+        "analytic_calls": 1,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.009132,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 0,
+          "total": 0
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 1,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-101-incomplete_loads-baseline.json",
+      "data_fingerprint": "ce813c61a0f83071c08864f2beb6be3df5e3f0d726f0656632891c900b17e3f1"
+    },
+    {
+      "seed": 101,
+      "scenario": "incomplete_loads",
+      "method": "agent",
+      "status": "blocked_data_quality",
+      "metrics": {
+        "analytic_calls": 1,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.010637,
+        "cost": null,
+        "model": "qwen3.5:4b",
+        "provider": "ollama",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 0,
+          "total": 0
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 1,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-101-incomplete_loads-agent.json",
+      "data_fingerprint": "ce813c61a0f83071c08864f2beb6be3df5e3f0d726f0656632891c900b17e3f1"
+    },
+    {
+      "seed": 101,
+      "scenario": "duplicate_reference",
+      "method": "baseline",
+      "status": "blocked_data_quality",
+      "metrics": {
+        "analytic_calls": 1,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.012458,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 0,
+          "total": 0
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 1,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-101-duplicate_reference-baseline.json",
+      "data_fingerprint": "fe3de4e4b9ee2c21a11233693268e322323d60653f7e27623bf312a130ea0f77"
+    },
+    {
+      "seed": 101,
+      "scenario": "duplicate_reference",
+      "method": "agent",
+      "status": "blocked_data_quality",
+      "metrics": {
+        "analytic_calls": 1,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.013875,
+        "cost": null,
+        "model": "qwen3.5:4b",
+        "provider": "ollama",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 0,
+          "total": 0
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 1,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-101-duplicate_reference-agent.json",
+      "data_fingerprint": "fe3de4e4b9ee2c21a11233693268e322323d60653f7e27623bf312a130ea0f77"
+    },
+    {
+      "seed": 101,
+      "scenario": "mixed_segments",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.056891,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 168,
+          "total": 168
+        },
+        "relevant_segment_expected": "mobile",
+        "relevant_segment_identified": true,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-101-mixed_segments-baseline.json",
+      "data_fingerprint": "f89fc0852602b2ee47c803e4b62049cb25a11360162e6c688c2e95d89824ea65"
+    },
+    {
+      "seed": 101,
+      "scenario": "mixed_segments",
+      "method": "agent",
+      "status": "partial",
+      "metrics": {
+        "analytic_calls": 7,
+        "llm_calls": 5,
+        "input_tokens": 5618,
+        "output_tokens": 324,
+        "latency_seconds": 13.479314,
+        "cost": null,
+        "model": "qwen3.5:4b",
+        "provider": "ollama",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [
+        "token_budget_exhausted"
+      ],
+      "score": {
+        "numeric": {
+          "correct": 93,
+          "total": 93
+        },
+        "relevant_segment_expected": "mobile",
+        "relevant_segment_identified": true,
+        "unsupported_claims": 0,
+        "claim_count": 15,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-101-mixed_segments-agent.json",
+      "data_fingerprint": "f89fc0852602b2ee47c803e4b62049cb25a11360162e6c688c2e95d89824ea65"
+    },
+    {
+      "seed": 101,
+      "scenario": "ambiguous",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.04065,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 98,
+          "total": 98
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-101-ambiguous-baseline.json",
+      "data_fingerprint": "6e4787111571d2c74729c27348f0556ac6fbbccfea4ff2d1ab0e98a477de1c3c"
+    },
+    {
+      "seed": 101,
+      "scenario": "ambiguous",
+      "method": "agent",
+      "status": "partial",
+      "metrics": {
+        "analytic_calls": 7,
+        "llm_calls": 6,
+        "input_tokens": 6582,
+        "output_tokens": 490,
+        "latency_seconds": 17.115611,
+        "cost": null,
+        "model": "qwen3.5:4b",
+        "provider": "ollama",
+        "usage_unknown": false,
+        "rejected_selections": 1
+      },
+      "errors": [
+        "token_budget_exhausted"
+      ],
+      "score": {
+        "numeric": {
+          "correct": 83,
+          "total": 83
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 15,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-101-ambiguous-agent.json",
+      "data_fingerprint": "6e4787111571d2c74729c27348f0556ac6fbbccfea4ff2d1ab0e98a477de1c3c"
+    },
+    {
+      "seed": 101,
+      "scenario": "no_change",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.047914,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 128,
+          "total": 128
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 19,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-101-no_change-baseline.json",
+      "data_fingerprint": "f5cf72092ed53aa87fd415c812519292e4430825a13ef04eb90f93dd03d5e960"
+    },
+    {
+      "seed": 101,
+      "scenario": "no_change",
+      "method": "agent",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 6,
+        "llm_calls": 5,
+        "input_tokens": 4734,
+        "output_tokens": 368,
+        "latency_seconds": 13.487859,
+        "cost": null,
+        "model": "qwen3.5:4b",
+        "provider": "ollama",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 73,
+          "total": 73
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 14,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-101-no_change-agent.json",
+      "data_fingerprint": "f5cf72092ed53aa87fd415c812519292e4430825a13ef04eb90f93dd03d5e960"
+    },
+    {
+      "seed": 101,
+      "scenario": "empty_period",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.320421,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 128,
+          "total": 128
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-101-empty_period-baseline.json",
+      "data_fingerprint": "03b6083c44a1bf591ae8c09246bf3130421514c05416714030d8de912ccfd5cf"
+    },
+    {
+      "seed": 101,
+      "scenario": "empty_period",
+      "method": "agent",
+      "status": "partial",
+      "metrics": {
+        "analytic_calls": 6,
+        "llm_calls": 6,
+        "input_tokens": 5936,
+        "output_tokens": 428,
+        "latency_seconds": 17.975383,
+        "cost": null,
+        "model": "qwen3.5:4b",
+        "provider": "ollama",
+        "usage_unknown": false,
+        "rejected_selections": 2
+      },
+      "errors": [
+        "token_budget_exhausted"
+      ],
+      "score": {
+        "numeric": {
+          "correct": 73,
+          "total": 73
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 13,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-101-empty_period-agent.json",
+      "data_fingerprint": "03b6083c44a1bf591ae8c09246bf3130421514c05416714030d8de912ccfd5cf"
+    },
+    {
+      "seed": 101,
+      "scenario": "services_ticket_drop",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.066735,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 128,
+          "total": 128
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-101-services_ticket_drop-baseline.json",
+      "data_fingerprint": "053aacb6ab4fb7fb07616998489ff9482fa8d8d8c0d5055c41ea72503715a4bd"
+    },
+    {
+      "seed": 101,
+      "scenario": "services_ticket_drop",
+      "method": "agent",
+      "status": "partial",
+      "metrics": {
+        "analytic_calls": 7,
+        "llm_calls": 5,
+        "input_tokens": 5417,
+        "output_tokens": 339,
+        "latency_seconds": 14.150038,
+        "cost": null,
+        "model": "qwen3.5:4b",
+        "provider": "ollama",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [
+        "token_budget_exhausted"
+      ],
+      "score": {
+        "numeric": {
+          "correct": 83,
+          "total": 83
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 15,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-101-services_ticket_drop-agent.json",
+      "data_fingerprint": "053aacb6ab4fb7fb07616998489ff9482fa8d8d8c0d5055c41ea72503715a4bd"
+    },
+    {
+      "seed": 202,
+      "scenario": "mobile_drop",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.063819,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 128,
+          "total": 128
+        },
+        "relevant_segment_expected": "mobile",
+        "relevant_segment_identified": true,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-202-mobile_drop-baseline.json",
+      "data_fingerprint": "def859a96661cd6e65fdb2992225634998c136c24797d7a3052fe914977e682f"
+    },
+    {
+      "seed": 202,
+      "scenario": "mobile_drop",
+      "method": "agent",
+      "status": "partial",
+      "metrics": {
+        "analytic_calls": 7,
+        "llm_calls": 5,
+        "input_tokens": 5566,
+        "output_tokens": 352,
+        "latency_seconds": 13.459906,
+        "cost": null,
+        "model": "qwen3.5:4b",
+        "provider": "ollama",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [
+        "token_budget_exhausted"
+      ],
+      "score": {
+        "numeric": {
+          "correct": 83,
+          "total": 83
+        },
+        "relevant_segment_expected": "mobile",
+        "relevant_segment_identified": true,
+        "unsupported_claims": 0,
+        "claim_count": 15,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-202-mobile_drop-agent.json",
+      "data_fingerprint": "def859a96661cd6e65fdb2992225634998c136c24797d7a3052fe914977e682f"
+    },
+    {
+      "seed": 202,
+      "scenario": "ticket_drop",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.041345,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 128,
+          "total": 128
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-202-ticket_drop-baseline.json",
+      "data_fingerprint": "f0b75fff7cd67930a01f9bf0d527d581310db209eaee1cd8e84acf4ac98d4c56"
+    },
+    {
+      "seed": 202,
+      "scenario": "ticket_drop",
+      "method": "agent",
+      "status": "partial",
+      "metrics": {
+        "analytic_calls": 7,
+        "llm_calls": 5,
+        "input_tokens": 5412,
+        "output_tokens": 320,
+        "latency_seconds": 12.946536,
+        "cost": null,
+        "model": "qwen3.5:4b",
+        "provider": "ollama",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [
+        "token_budget_exhausted"
+      ],
+      "score": {
+        "numeric": {
+          "correct": 83,
+          "total": 83
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 15,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-202-ticket_drop-agent.json",
+      "data_fingerprint": "f0b75fff7cd67930a01f9bf0d527d581310db209eaee1cd8e84acf4ac98d4c56"
+    },
+    {
+      "seed": 202,
+      "scenario": "incomplete_loads",
+      "method": "baseline",
+      "status": "blocked_data_quality",
+      "metrics": {
+        "analytic_calls": 1,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.010183,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 0,
+          "total": 0
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 1,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-202-incomplete_loads-baseline.json",
+      "data_fingerprint": "72f118de7e2eb31b5fbf78b43b0537589063dbdc1a4414c47017d9d53934f0ee"
+    },
+    {
+      "seed": 202,
+      "scenario": "incomplete_loads",
+      "method": "agent",
+      "status": "blocked_data_quality",
+      "metrics": {
+        "analytic_calls": 1,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.012034,
+        "cost": null,
+        "model": "qwen3.5:4b",
+        "provider": "ollama",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 0,
+          "total": 0
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 1,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-202-incomplete_loads-agent.json",
+      "data_fingerprint": "72f118de7e2eb31b5fbf78b43b0537589063dbdc1a4414c47017d9d53934f0ee"
+    },
+    {
+      "seed": 202,
+      "scenario": "duplicate_reference",
+      "method": "baseline",
+      "status": "blocked_data_quality",
+      "metrics": {
+        "analytic_calls": 1,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.011173,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 0,
+          "total": 0
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 1,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-202-duplicate_reference-baseline.json",
+      "data_fingerprint": "80e1f5334423ffc590533df7c344cfa7af3ca13290678eb1cd93d395521e7d66"
+    },
+    {
+      "seed": 202,
+      "scenario": "duplicate_reference",
+      "method": "agent",
+      "status": "blocked_data_quality",
+      "metrics": {
+        "analytic_calls": 1,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.009626,
+        "cost": null,
+        "model": "qwen3.5:4b",
+        "provider": "ollama",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 0,
+          "total": 0
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 1,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-202-duplicate_reference-agent.json",
+      "data_fingerprint": "80e1f5334423ffc590533df7c344cfa7af3ca13290678eb1cd93d395521e7d66"
+    },
+    {
+      "seed": 202,
+      "scenario": "mixed_segments",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.062574,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 168,
+          "total": 168
+        },
+        "relevant_segment_expected": "mobile",
+        "relevant_segment_identified": true,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-202-mixed_segments-baseline.json",
+      "data_fingerprint": "69a6f4438f9cb92a8e33eeb4d14aecdd3dd65093176a63152a7dd9c6c1bd54fc"
+    },
+    {
+      "seed": 202,
+      "scenario": "mixed_segments",
+      "method": "agent",
+      "status": "partial",
+      "metrics": {
+        "analytic_calls": 7,
+        "llm_calls": 5,
+        "input_tokens": 5749,
+        "output_tokens": 312,
+        "latency_seconds": 12.964508,
+        "cost": null,
+        "model": "qwen3.5:4b",
+        "provider": "ollama",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [
+        "token_budget_exhausted"
+      ],
+      "score": {
+        "numeric": {
+          "correct": 93,
+          "total": 93
+        },
+        "relevant_segment_expected": "mobile",
+        "relevant_segment_identified": true,
+        "unsupported_claims": 0,
+        "claim_count": 15,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-202-mixed_segments-agent.json",
+      "data_fingerprint": "69a6f4438f9cb92a8e33eeb4d14aecdd3dd65093176a63152a7dd9c6c1bd54fc"
+    },
+    {
+      "seed": 202,
+      "scenario": "ambiguous",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.059899,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 98,
+          "total": 98
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-202-ambiguous-baseline.json",
+      "data_fingerprint": "de5ce90ae852ab509d25e133d766f162d491275c732d5fcee2857743607d11aa"
+    },
+    {
+      "seed": 202,
+      "scenario": "ambiguous",
+      "method": "agent",
+      "status": "partial",
+      "metrics": {
+        "analytic_calls": 7,
+        "llm_calls": 5,
+        "input_tokens": 5634,
+        "output_tokens": 397,
+        "latency_seconds": 14.340801,
+        "cost": null,
+        "model": "qwen3.5:4b",
+        "provider": "ollama",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [
+        "token_budget_exhausted"
+      ],
+      "score": {
+        "numeric": {
+          "correct": 83,
+          "total": 83
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 15,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-202-ambiguous-agent.json",
+      "data_fingerprint": "de5ce90ae852ab509d25e133d766f162d491275c732d5fcee2857743607d11aa"
+    },
+    {
+      "seed": 202,
+      "scenario": "no_change",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.055146,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 128,
+          "total": 128
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 19,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-202-no_change-baseline.json",
+      "data_fingerprint": "4c9e19d3cfe43af1970a9c1e2eabfc280bdecd08de6cfc2b8dd0891334db1dc8"
+    },
+    {
+      "seed": 202,
+      "scenario": "no_change",
+      "method": "agent",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 6,
+        "llm_calls": 5,
+        "input_tokens": 4729,
+        "output_tokens": 479,
+        "latency_seconds": 14.952955,
+        "cost": null,
+        "model": "qwen3.5:4b",
+        "provider": "ollama",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 73,
+          "total": 73
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 14,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-202-no_change-agent.json",
+      "data_fingerprint": "4c9e19d3cfe43af1970a9c1e2eabfc280bdecd08de6cfc2b8dd0891334db1dc8"
+    },
+    {
+      "seed": 202,
+      "scenario": "empty_period",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.062769,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 128,
+          "total": 128
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-202-empty_period-baseline.json",
+      "data_fingerprint": "a807fd1e83c154cfc31eca418b754b8c76245b47be9ff87610f89a132a750296"
+    },
+    {
+      "seed": 202,
+      "scenario": "empty_period",
+      "method": "agent",
+      "status": "partial",
+      "metrics": {
+        "analytic_calls": 7,
+        "llm_calls": 5,
+        "input_tokens": 5060,
+        "output_tokens": 309,
+        "latency_seconds": 13.738104,
+        "cost": null,
+        "model": "qwen3.5:4b",
+        "provider": "ollama",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [
+        "token_budget_exhausted"
+      ],
+      "score": {
+        "numeric": {
+          "correct": 83,
+          "total": 83
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 15,
+        "report_valid": true,
+        "abstention_correct": 1,
+        "abstention_total": 1
+      },
+      "report": "seed-202-empty_period-agent.json",
+      "data_fingerprint": "a807fd1e83c154cfc31eca418b754b8c76245b47be9ff87610f89a132a750296"
+    },
+    {
+      "seed": 202,
+      "scenario": "services_ticket_drop",
+      "method": "baseline",
+      "status": "completed",
+      "metrics": {
+        "analytic_calls": 8,
+        "llm_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "latency_seconds": 0.10026,
+        "cost": null,
+        "model": "none",
+        "provider": "deterministic_baseline",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [],
+      "score": {
+        "numeric": {
+          "correct": 128,
+          "total": 128
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 18,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-202-services_ticket_drop-baseline.json",
+      "data_fingerprint": "ec501ae3105549d2a545092bbf9248a8b3e7aed3391457e41c57c70cd871ee90"
+    },
+    {
+      "seed": 202,
+      "scenario": "services_ticket_drop",
+      "method": "agent",
+      "status": "partial",
+      "metrics": {
+        "analytic_calls": 7,
+        "llm_calls": 5,
+        "input_tokens": 5393,
+        "output_tokens": 349,
+        "latency_seconds": 13.273627,
+        "cost": null,
+        "model": "qwen3.5:4b",
+        "provider": "ollama",
+        "usage_unknown": false,
+        "rejected_selections": 0
+      },
+      "errors": [
+        "token_budget_exhausted"
+      ],
+      "score": {
+        "numeric": {
+          "correct": 83,
+          "total": 83
+        },
+        "relevant_segment_expected": null,
+        "relevant_segment_identified": null,
+        "unsupported_claims": 0,
+        "claim_count": 15,
+        "report_valid": true,
+        "abstention_correct": 0,
+        "abstention_total": 0
+      },
+      "report": "seed-202-services_ticket_drop-agent.json",
+      "data_fingerprint": "ec501ae3105549d2a545092bbf9248a8b3e7aed3391457e41c57c70cd871ee90"
+    }
+  ],
+  "summary": {
+    "baseline": {
+      "runs": 18,
+      "status_counts": {
+        "completed": 14,
+        "partial": 0,
+        "blocked_data_quality": 4,
+        "failed": 0
+      },
+      "numeric_correct": 1812,
+      "numeric_total": 1812,
+      "numeric_accuracy": 1.0,
+      "relevant_segments_identified": 4,
+      "relevant_segments_total": 4,
+      "unsupported_claims": 0,
+      "claim_count": 258,
+      "abstention_correct": 8,
+      "abstention_total": 8,
+      "mean_analytic_calls": 6.444444444444445,
+      "mean_latency_seconds": 0.06236761111111111,
+      "median_latency_seconds": 0.054166,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "llm_calls": 0,
+      "usage_unknown_runs": 0,
+      "cost": null
+    },
+    "agent": {
+      "runs": 18,
+      "status_counts": {
+        "completed": 2,
+        "partial": 12,
+        "blocked_data_quality": 4,
+        "failed": 0
+      },
+      "numeric_correct": 1152,
+      "numeric_total": 1152,
+      "numeric_accuracy": 1.0,
+      "relevant_segments_identified": 4,
+      "relevant_segments_total": 4,
+      "unsupported_claims": 0,
+      "claim_count": 210,
+      "abstention_correct": 8,
+      "abstention_total": 8,
+      "mean_analytic_calls": 5.5,
+      "mean_latency_seconds": 11.096281611111111,
+      "median_latency_seconds": 13.46961,
+      "input_tokens": 77714,
+      "output_tokens": 5119,
+      "llm_calls": 73,
+      "usage_unknown_runs": 0,
+      "cost": null
+    }
+  },
+  "latency_scope": "LangGraph execution wall time; excludes CSV validation and DuckDB ingestion performed before run_investigation in this evaluator.",
+  "presentation_note": "Canonical Spanish report wording was normalized to two decimal places and translated warning descriptions after execution; analytical evidence, decisions, statuses and measurements were preserved."
+}

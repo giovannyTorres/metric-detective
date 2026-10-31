@@ -1,0 +1,9 @@
+* text=auto eol=lf
+# Evidence fingerprints include the original CSV bytes, including CRLF.
+# Preserve snapshots byte-for-byte on Linux and Windows checkouts.
+*.csv -text
+*.gif binary
+*.jpg binary
+*.png binary
+examples/recorded-investigation.html linguist-generated=true
+evaluation/** linguist-generated=true

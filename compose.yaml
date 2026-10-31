@@ -1,0 +1,70 @@
+name: metric-detective
+x-runtime: &runtime
+  build: .
+  environment: &environment
+    MD_DATABASE_URL: postgresql://detective:${POSTGRES_PASSWORD:-local-development-only}@db:5432/detective
+    MD_DATA_DIR: /app/runtime/datasets
+    MD_LLM_PROVIDER: ollama
+    MD_LLM_MODEL: ${MD_LLM_MODEL:-qwen3.5:4b}
+    MD_OLLAMA_BASE_URL: ${MD_COMPOSE_OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+    MD_LLM_API_KEY: ${MD_LLM_API_KEY:-}
+    MD_MAX_UPLOAD_BYTES: ${MD_MAX_UPLOAD_BYTES:-10485760}
+    MD_LEASE_SECONDS: ${MD_LEASE_SECONDS:-30}
+    MD_MAX_JOB_ATTEMPTS: ${MD_MAX_JOB_ATTEMPTS:-3}
+    LANGSMITH_TRACING: "false"
+  volumes:
+    - datasets:/app/runtime/datasets
+  extra_hosts:
+    - host.docker.internal:host-gateway
+  restart: unless-stopped
+  depends_on:
+    db:
+      condition: service_healthy
+
+services:
+  db:
+    image: postgres:17.11-alpine
+    environment:
+      POSTGRES_USER: detective
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-development-only}
+      POSTGRES_DB: detective
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U detective -d detective"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  api:
+    <<: *runtime
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health',timeout=3)"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  worker:
+    <<: *runtime
+    command: ["metric-detective", "worker"]
+    depends_on:
+      api:
+        condition: service_healthy
+  ui:
+    <<: *runtime
+    environment:
+      <<: *environment
+      MD_API_URL: http://api:8000
+    command: ["streamlit", "run", "src/metric_detective/ui.py", "--server.address", "0.0.0.0", "--server.port", "8501", "--server.headless", "true"]
+    ports:
+      - "127.0.0.1:8501:8501"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  postgres:
+  datasets:

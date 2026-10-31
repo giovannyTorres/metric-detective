@@ -1,0 +1,22 @@
+{
+  "name": "Settled service fees",
+  "id_column": "engagement_id",
+  "timestamp_column": "settled_at",
+  "status_column": "settlement_status",
+  "amount_column": "fee",
+  "currency_column": "currency",
+  "dimensions": {
+    "device": "delivery",
+    "channel": "acquisition",
+    "country": "region"
+  },
+  "included_statuses": [
+    "settled"
+  ],
+  "timezone": "America/Mexico_City",
+  "currency": "MXN",
+  "expected_sources": [
+    "services"
+  ],
+  "relevant_change_pct": 1.0
+}

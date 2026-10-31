@@ -1,0 +1,141 @@
+{
+  "schema_version": "1.0",
+  "status": "blocked_data_quality",
+  "mode": "baseline",
+  "request": {
+    "dataset_id": "evaluation_dataset",
+    "reference_start": "2026-01-05",
+    "comparison_start": "2026-01-12",
+    "config": {
+      "name": "Ecommerce revenue",
+      "id_column": "order_id",
+      "timestamp_column": "paid_at",
+      "status_column": "status",
+      "amount_column": "amount",
+      "currency_column": "currency",
+      "dimensions": {
+        "device": "device",
+        "channel": "channel",
+        "country": "country"
+      },
+      "included_statuses": [
+        "paid"
+      ],
+      "timezone": "America/Mexico_City",
+      "currency": "MXN",
+      "expected_sources": [
+        "orders"
+      ],
+      "relevant_change_pct": 1.0
+    },
+    "mode": "baseline",
+    "limits": {
+      "max_calls": 8,
+      "max_depth": 2,
+      "max_seconds": 180.0,
+      "max_tokens": 12000,
+      "max_retries": 1
+    }
+  },
+  "data_fingerprint": "80e1f5334423ffc590533df7c344cfa7af3ca13290678eb1cd93d395521e7d66",
+  "findings": [
+    {
+      "id": "ev_ff97fd2a353b9d5c31fb:status",
+      "kind": "data_quality",
+      "text": "La calidad de los datos impide el diagnóstico de negocio.",
+      "evidence_id": "ev_ff97fd2a353b9d5c31fb",
+      "metric": "status",
+      "path": "status",
+      "value": "blocked",
+      "unit": "status",
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      }
+    }
+  ],
+  "hypotheses": [],
+  "missing_data": [
+    "Hay identificadores de pedido duplicados; se debe corregir la fuente antes de diagnosticar el negocio."
+  ],
+  "evidence": [
+    {
+      "id": "ev_ff97fd2a353b9d5c31fb",
+      "tool": "check_data_quality",
+      "values": {
+        "status": "blocked",
+        "issues": [
+          "duplicate_order_identifiers"
+        ],
+        "completeness_verified": true,
+        "valid_rows": 505,
+        "eligible_rows": 505,
+        "duplicate_ids": 1,
+        "missing_load_declarations": 0,
+        "incomplete_load_declarations": 0,
+        "duplicate_load_declarations": 0,
+        "rows_with_missing_dimensions": 0
+      },
+      "units": {
+        "valid_rows": "orders",
+        "eligible_rows": "orders",
+        "duplicate_ids": "orders"
+      },
+      "periods": {
+        "reference": {
+          "start": "2026-01-05",
+          "end_exclusive": "2026-01-12"
+        },
+        "comparison": {
+          "start": "2026-01-12",
+          "end_exclusive": "2026-01-19"
+        }
+      },
+      "filters": {},
+      "row_count": 505,
+      "warnings": [
+        "duplicate_order_identifiers"
+      ],
+      "reproduction": {
+        "checks": [
+          "strict_csv_contract",
+          "unique_order_id",
+          "single_currency",
+          "complete_load_grid"
+        ],
+        "formula": "Every selected local date × expected source needs one explicit complete declaration; row presence is never proof of completeness.",
+        "orders_sha256": "34eb38b00442c8bea38aee10fd11c51bcd37433ad37e5be4b4d6597b9b3d3674",
+        "loads_sha256": "84808c50859afb1686b86e0cd3d0517909472673dccbe60bc2ac154138461377",
+        "engine_version": "metric-detective-analytics-v1",
+        "canonicalization": "docs/contract.md#canonical-table"
+      },
+      "data_fingerprint": "80e1f5334423ffc590533df7c344cfa7af3ca13290678eb1cd93d395521e7d66"
+    }
+  ],
+  "decisions": [],
+  "metrics": {
+    "analytic_calls": 1,
+    "llm_calls": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_seconds": 0.011173,
+    "cost": null,
+    "model": "none",
+    "provider": "deterministic_baseline",
+    "usage_unknown": false,
+    "rejected_selections": 0
+  },
+  "errors": [],
+  "limitations": [
+    "Una moneda por investigación; ingresos = suma de importes de pedidos con estados incluidos.",
+    "Las devoluciones quedan fuera del alcance; las contribuciones son aritméticas, no efectos causales.",
+    "Cada partición suma su propio cambio; no se suman contribuciones entre dispositivo y canal.",
+    "El umbral de relevancia es descriptivo y configurable; no es una prueba de significancia estadística."
+  ]
+}

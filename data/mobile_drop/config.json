@@ -1,0 +1,22 @@
+{
+  "name": "Ecommerce revenue",
+  "id_column": "order_id",
+  "timestamp_column": "paid_at",
+  "status_column": "status",
+  "amount_column": "amount",
+  "currency_column": "currency",
+  "dimensions": {
+    "device": "device",
+    "channel": "channel",
+    "country": "country"
+  },
+  "included_statuses": [
+    "paid"
+  ],
+  "timezone": "America/Mexico_City",
+  "currency": "MXN",
+  "expected_sources": [
+    "orders"
+  ],
+  "relevant_change_pct": 1.0
+}

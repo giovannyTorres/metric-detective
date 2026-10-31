@@ -1,0 +1,102 @@
+{
+  "name": "Metric Detective — start, poll, prepare notification",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "start-manual",
+      "name": "Manual start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { api_url: 'http://host.docker.internal:8000', request: { dataset_id: 'demo-mobile_drop', reference_start: '2026-01-05', comparison_start: '2026-01-12', mode: 'baseline', config: { name: 'Ecommerce revenue', id_column: 'order_id', timestamp_column: 'paid_at', status_column: 'status', amount_column: 'amount', currency_column: 'currency', dimensions: { device: 'device', channel: 'channel', country: 'country' }, included_statuses: ['paid'], timezone: 'America/Mexico_City', currency: 'MXN', expected_sources: ['orders'], relevant_change_pct: 1 }, limits: { max_calls: 8, max_depth: 2, max_seconds: 180, max_tokens: 12000, max_retries: 1 } } } }];"
+      },
+      "id": "configure",
+      "name": "Configure request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.api_url + '/investigations' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.request) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "start-job",
+      "name": "Start investigation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": { "amount": 5, "unit": "seconds" },
+      "id": "wait-before-poll",
+      "name": "Wait five seconds",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [660, 0],
+      "webhookId": "metric-detective-poll-delay"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Configure request').first().json.api_url + '/investigations/' + $('Start investigation').first().json.id }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "poll-job",
+      "name": "Poll status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            {
+              "id": "pending-under-limit",
+              "leftValue": "={{ ['queued', 'running'].includes($json.status) && $runIndex < 90 }}",
+              "rightValue": "",
+              "operator": { "type": "boolean", "operation": "true", "singleValue": true }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "pending",
+      "name": "Still pending and within poll limit?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1100, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const job = $input.first().json;\nconst pending = ['queued', 'running'].includes(job.status);\nconst report = job.report || {};\nreturn [{ json: { prepared_only: true, sent: false, job_id: job.id, status: job.status, polling_timed_out: pending, subject: `Metric Detective: ${pending ? 'poll limit reached' : job.status}`, body: pending ? 'The job is still pending. Inspect the API or UI; this workflow did not cancel it.' : (report.findings || []).map(f => f.text).join('\\n') || 'Inspect report limitations or job error.', report_url: $('Configure request').first().json.api_url + '/investigations/' + job.id + '/report.html' } }];"
+      },
+      "id": "prepare-message",
+      "name": "Prepare notification — do not send",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, 100]
+    }
+  ],
+  "connections": {
+    "Manual start": { "main": [[{ "node": "Configure request", "type": "main", "index": 0 }]] },
+    "Configure request": { "main": [[{ "node": "Start investigation", "type": "main", "index": 0 }]] },
+    "Start investigation": { "main": [[{ "node": "Wait five seconds", "type": "main", "index": 0 }]] },
+    "Wait five seconds": { "main": [[{ "node": "Poll status", "type": "main", "index": 0 }]] },
+    "Poll status": { "main": [[{ "node": "Still pending and within poll limit?", "type": "main", "index": 0 }]] },
+    "Still pending and within poll limit?": { "main": [[{ "node": "Wait five seconds", "type": "main", "index": 0 }], [{ "node": "Prepare notification — do not send", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "executionTimeout": 600 },
+  "pinData": {},
+  "tags": []
+}
